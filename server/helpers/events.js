@@ -1,6 +1,11 @@
 const connect = require("./db");
+const { parse } = require("url");
+const ObjectId = require('mongodb').ObjectId
+const cors = require('micro-cors')()
 
 const events = async (req, res) => {
+  const { query } = parse(req.url, true);
+  console.log(query)
   // Set caching headers to serve stale content (if over a second old)
   // while revalidating fresh content in the background
   res.setHeader('cache-control', 's-maxage=1 maxage=0, stale-while-revalidate')
@@ -18,4 +23,4 @@ const events = async (req, res) => {
   res.status(200).json(event)
 }
 
-module.exports = { events }
+module.exports = { events: cors(events) }

@@ -37,7 +37,8 @@ class Create extends Component {
           }
         },
         organizer: {
-          name: ""
+          name: "",
+          id: ""
         },
         refundable: true,
         tags: "",
@@ -78,7 +79,7 @@ class Create extends Component {
       formData.append("file", file)
     })
 
-    await axios(`https://tba.freshlybreemed.now.sh/upload`, {
+    await axios(`/upload`, {
       method: 'POST',
       data: formData,
     })
@@ -160,7 +161,7 @@ class Create extends Component {
   };
   handleSubmit(e) {
     e.preventDefault();
-    axios('https://tba.freshlybreemed.now.sh/event',{
+    axios('/event',{
       method: 'POST',
       data: {
           "event": {...this.state.event}

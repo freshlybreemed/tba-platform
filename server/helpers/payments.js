@@ -2,8 +2,9 @@ const { json, send } = require("micro");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_DEV);
 const axios = require("axios");
 const connect = require("./db");
+const ObjectId = require('mongodb').ObjectID;
 const redirect = require('micro-redirect')
-var cors = require('micro-cors')()
+const cors = require('micro-cors')()
 
 const dispatchTicket = (token, quantity) => {
   const headers = {
@@ -64,13 +65,30 @@ const updateAndSaveApi = async (res, list) => {
    const database = await connect()
 
    // Select the "tba" collection from the database
-   const collection = await database.collection('eventList')
+   const collection = await database.collection('tba')
   //  console.log(list)
-   const event = list
  
    // Respond with a JSON string of all users in the collection
    try {
-    let result = await collection.insertMany(event)
+     let result = await collection.findOneAndUpdate({_id:ObjectId("5d45347642ff74000796a2f6")},{$set: {"tickets":list}})
+     send(res, 200,result);
+   } catch(err) {
+     console.log(err)
+   }
+   
+}
+const getEventApi = async (req, res) => {
+
+   // Connect to MongoDB and get the database
+   const database = await connect()
+
+   // Select the "tba" collection from the database
+   const collection = await database.collection('tba')
+  //  console.log(list)
+ 
+   // Respond with a JSON string of all users in the collection
+   try {
+     let result = await collection.find({_id:ObjectId("5d45347642ff74000796a2f6")})
      send(res, 200,result);
    } catch(err) {
      console.log(err)
@@ -88,7 +106,7 @@ const balanceApi = async (req, res)  => {
       charges.push(customer)
       console.log(customer)
   })
-  updateAndSaveApi(res, charges)
+  updateAndSaveApi(res, "", charges)
 }
 const bankValidation = async (res, req) => {
   const bankInfo = await json(req)
@@ -117,5 +135,6 @@ const createAccount = async (req, res) => {
 module.exports = {
   ticketApi,
   createAccount,
+  getEventApi: cors(getEventApi),
   balanceApi : cors(balanceApi)
 };

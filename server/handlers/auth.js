@@ -5,7 +5,7 @@ const jwksRsa = require("jwks-rsa");
 const authConfig = {
     domain: "tbaevents.auth0.com",
     clientId: process.env.AUTH0_CLIENT_ID,
-    audience: "https://tbaevents.auth0.com/api/v2/"
+    audience: "https://tba-freshlybreemed.tba-project.now.sh"
   };
   
   // Define middleware that validates incoming bearer tokens

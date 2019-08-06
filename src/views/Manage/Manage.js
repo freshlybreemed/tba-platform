@@ -472,7 +472,7 @@ class Manage extends Component {
   }
   getData(){
     //get recent tix data + balance, tix solds
-    axios.get('https://tba.freshlybreemed.now.sh/api/balance')
+    axios.get('/api/event/234')
     .then(res=>{
       console.log(res)
     }).catch(err=>{
@@ -609,48 +609,45 @@ class Manage extends Component {
                   <Col xs="12" md="6" xl="6">
                   <h4>Traffic & Sales</h4> 
                     <Row>
-                      <Col sm="4">
-                        <div className="callout callout-info">
-                          <small className="text-muted">Tickets Sold</small>
-                          <br />
-                          <strong className="h4">9,123</strong>
-                          <div className="chart-wrapper">
-                            <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
-                          </div>
-                        </div>
+                      <Col sm="5">
+                        <Card>
+                          <CardBody>
+                          {/* <div className="callout callout-info"> */}
+                            <small className="text-muted">Tickets Sold</small>
+                            <br />
+                            <strong className="h4">9,123</strong>
+                            <div className="chart-wrapper">
+                              <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
+                            </div>
+                          {/* </div> */}
+                          </CardBody>
+                      </Card>
                         
                       </Col>
-                      <Col sm="4">
-                        <div className="callout callout-info">
-                          <small className="text-muted">Tickets Sold</small>
-                          <br />
-                          <strong className="h4">9,123</strong>
-                          <div className="chart-wrapper">
-                            <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
-                          </div>
-                        </div>
+                      <Col sm="5">
+                        <Card>
+                          <CardBody>
+                            <small className="text-muted">Balance </small>
+                            <br />
+                            <strong className="h4">$2,120</strong>
+                            <div className="chart-wrapper">
+                              <Line data={makeSparkLineData(0, brandInfo)} options={sparklineChartOpts} width={100} height={30} />
+                            </div>
+                          </CardBody>
+                        </Card>
                         
                       </Col>
-                      <Col sm="4">
-                        <div className="callout callout-info">
-                          <small className="text-muted">Total Balance</small>
-                          <br />
-                          <strong className="h4">$2,123</strong>
-                          <div className="chart-wrapper">
-                            <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
-                          </div>
-                        </div>
-                        
-                      </Col>
-                      <Col sm="4">
-                        <div className="callout callout-warning">
-                          <small className="text-muted">Pageviews</small>
-                          <br />
-                          <strong className="h4">78,623</strong>
-                          <div className="chart-wrapper">
-                            <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
-                          </div>
-                        </div>
+                      <Col sm="5">
+                        <Card>
+                          <CardBody>                       
+                            <small className="text-muted">Pageviews</small>
+                            <br />
+                            <strong className="h4">78,623</strong>
+                            <div className="chart-wrapper">
+                              <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
+                            </div>
+                        </CardBody>                       
+                      </Card>
                       </Col>
                     </Row>
                     </Col>
