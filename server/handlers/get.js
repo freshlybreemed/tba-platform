@@ -2,13 +2,17 @@
 const { handleErrors } = require('../helpers/error')
 const { events } = require('../helpers/events')
 const { send } = require('micro')
+const url = require('url')
 const { balanceApi } = require('../helpers/payments')
 
 const getApi = fn => async (req, res) => {
     try {
       console.log(req.url)
-      switch(req.url){
+      const parse = req.url.split('/')
+      switch("/"+parse[1]+"/"+parse[2]){
         case "/api/event":
+          let { query } = url.parse(req.url, true)
+          console.log(query)
           return await fn(events(req,res))
         case "/api/balance":
           return await fn(balanceApi(req,res))

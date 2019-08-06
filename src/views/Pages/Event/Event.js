@@ -7,7 +7,7 @@ class Event extends Component {
 
   this.state = {
     isOpen: false,
-    isEventFetched: true,
+    isEventFetched: false,
     collapse: false,
     gaCount: 0,
     quantity:0,
@@ -71,9 +71,11 @@ class Event extends Component {
 }
   componentDidMount() {
     let event;
-    console.log(process.env)
+    // console.log(process.env)
+    let id =window.location.href.split('/')[window.location.href.split('/').length-1]
     if (process.env.NODE_ENV !== "development") {
-      axios.get(`/api/event`)
+      // axios.get(`/api/event?id=${id}`)
+      axios.get(`/api/event/234`)
         .then(res => {
           console.log(res)
           event = res.data[0];
