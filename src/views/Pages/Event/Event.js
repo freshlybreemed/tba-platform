@@ -235,7 +235,7 @@ class Event extends Component {
         <div className="app align-items-center">
           {/* <Container> */}
             <Jumbotron>
-              <Media width="100%" src={this.state.isEventFetched? event.image.cdnUri:'' }/>
+              <Media width="100%" src={this.state.isEventFetched && typeof event.image.cdnUri !== 'undefined'? event.image.cdnUri:'' }/>
               <br />
               <h1>{this.state.isEventFetched ? event.title:'Chicken & Mumbo Sauce' }</h1> 
               <Collapse isOpen={this.state.collapse}>                      
