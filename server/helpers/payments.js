@@ -1,6 +1,7 @@
 const { json, send } = require("micro");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_DEV);
 const axios = require("axios");
+const { parse } = require("url");
 const connect = require("./db");
 const ObjectId = require('mongodb').ObjectID;
 const redirect = require('micro-redirect')
@@ -34,80 +35,64 @@ const dispatchTicket = (token, quantity) => {
   }
   return Promise.all(tickets)
 };
-const stripeChargeCallback = (res, token, quantity) => async (err, charge) => {
+const stripeChargeCallback = (res, metadata) => async (err, charge) => {
+  console.log(metadata)
   if (err) {
     console.log(err)
     send(res, 500, { error: err });
   } else {
-    // TODO: handle flow of dispatch ticket failing
-    // console.log(token)
-    // await dispatchTicket(token, quantity);
-    redirect(res, 200, '/event/877/confirmation')
+   const database = await connect()
+   const collection = await database.collection('tba')
+  for(var tix in metadata){
+      console.log(tix)
+      if (tix === "eventId") continue
+      const key = `ticketTypes.${tix}.currentQuantity`
+      const obj = {}
+      obj[key] = -metadata[tix]
+      console.log( await collection.findOneAndUpdate({_id: ObjectId(metadata.eventId)},{$inc:obj},{returnNewDocument:true}))
+    }
+   redirect(res, 200, `/event/${metadata.eventId}/confirmation`)
   }
 };
 const ticketApi = async (req, res) => {
   const data = await json(req);
-  console.log(data)
   const body = {
     source: data.token.id,
     amount: data.amount,
     currency: "usd",
     metadata: data.metadata
   };
-  const account = {
-    stripe_account: "acct_1F3F3UEhNU9azNgf",
-  }
-  stripe.charges.create(body, account, stripeChargeCallback(res, data.token, data.quantity));
+  console.log(body)
+  stripe.charges.create(body, stripeChargeCallback(res, body.metadata));
 };
-const updateAndSaveApi = async (res, list) => {
+const updateAndSaveApi = async (res, id, list) => {
 
    // Connect to MongoDB and get the database
    const database = await connect()
 
    // Select the "tba" collection from the database
    const collection = await database.collection('tba')
-  //  console.log(list)
- 
+   console.log(list)
+   console.log('updating')
    // Respond with a JSON string of all users in the collection
-   try {
-     let result = await collection.findOneAndUpdate({_id:ObjectId("5d45347642ff74000796a2f6")},{$set: {"tickets":list}})
-     send(res, 200,result);
-   } catch(err) {
-     console.log(err)
-   }
-   
-}
-const getEventApi = async (req, res) => {
+   let result = await collection.findOneAndUpdate({_id:ObjectId(id)},{$set: {"tickets":list}},{returnNewDocument: true})
+   send(res, 200,result);
 
-   // Connect to MongoDB and get the database
-   const database = await connect()
-
-   // Select the "tba" collection from the database
-   const collection = await database.collection('tba')
-  //  console.log(list)
- 
-   // Respond with a JSON string of all users in the collection
-   try {
-     let result = await collection.find({_id:ObjectId("5d45347642ff74000796a2f6")})
-     send(res, 200,result);
-   } catch(err) {
-     console.log(err)
-   }
-   
 }
 const balanceApi = async (req, res)  => { 
   // Get events
+  const { query } = parse(req.url, true);
   var count = 0
-  console.log("Get Stripe Data")
   var charges = []
   await stripe.charges.list({limit: 100}).autoPagingEach(function(customer) {
-      // Do something with customer
-      count++
-      charges.push(customer)
-      console.log(customer)
-  })
-  updateAndSaveApi(res, "", charges)
+    // Do something with customer
+    count++
+    charges.push(customer)
+    // console.log(customer)
+  }).then(()=>updateAndSaveApi(res, query.id, charges))
+  
 }
+
 const bankValidation = async (res, req) => {
   const bankInfo = await json(req)
   stripe.tokens.create({

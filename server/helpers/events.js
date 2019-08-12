@@ -5,22 +5,35 @@ const cors = require('micro-cors')()
 
 const events = async (req, res) => {
   const { query } = parse(req.url, true);
-  console.log(query)
+  console.log(query.id)
   // Set caching headers to serve stale content (if over a second old)
   // while revalidating fresh content in the background
   res.setHeader('cache-control', 's-maxage=1 maxage=0, stale-while-revalidate')
 
-  // Connect to MongoDB and get the database
   const database = await connect()
-
-  // Select the "tba" collection from the database
   const collection = await database.collection('tba')
 
-  // Select the users collection from the database
-  const event = await collection.find({}).toArray()
+  const event = await collection.find({_id: ObjectId(query.id)}).toArray()
 
   // Respond with a JSON string of all users in the collection
   res.status(200).json(event)
 }
 
-module.exports = { events: cors(events) }
+const eventsByOrganizer = async (req, res) => {
+  const { query } = parse(req.url, true);
+  console.log(query.id)
+  // Set caching headers to serve stale content (if over a second old)
+  // while revalidating fresh content in the background
+  res.setHeader('cache-control', 's-maxage=1 maxage=0, stale-while-revalidate')
+
+  const database = await connect()
+  const collection = await database.collection('tba')
+
+  const event = await collection.find({organizerId:query.id}).toArray()
+
+  // Respond with a JSON string of all users in the collection
+  res.status(200).json(event)
+}
+
+
+module.exports = { events: cors(events), eventsByOrganizer:cors(eventsByOrganizer) }
