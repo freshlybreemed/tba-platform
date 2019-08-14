@@ -1,5 +1,4 @@
 var cloudinary = require("cloudinary").v2; 
-const connect = require("./db");
 var multiparty = require('multiparty');
 var cors = require('micro-cors')()
 var util = require('util');

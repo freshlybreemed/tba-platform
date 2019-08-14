@@ -16,7 +16,6 @@ const propTypes = {
 const defaultProps = {};
 
 const DefaultHeader = (props) => {
-  console.log(process.env)
     const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
 // 
     // eslint-disable-next-line

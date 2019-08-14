@@ -18,6 +18,7 @@ class Create extends Component {
       images: [],
       event: {
         title: "",
+        organizerId: "",
         description: "",
         endDate: "",
         startDate: "",
@@ -43,7 +44,6 @@ class Create extends Component {
         refundable: true,
         tags: "",
         ticketTypes: {
-          GA: {name: "GA", type: "paid", quantity: 0, price: 15, fees: 2.45, }
         },
         user: "",
         doorTime: "",
@@ -233,7 +233,7 @@ class Create extends Component {
                   placeholder="Include need-to-know information here...." required/>
         </Col>
         <Col>
-          <Button disabled color="secondary" onClick={this.createTicket} size="md" >Save</Button>
+          <Button color="secondary" onClick={this.createTicket} size="md" >Save</Button>
           <Button color="secondary" onClick={() => this.toggle("cancel")} size="md" >Cancel</Button>
         </Col>
       </FormGroup>
@@ -247,7 +247,9 @@ class Create extends Component {
     tickets[currentTicketName] = {
       name: state.currentTicketName, 
       type: state.currentTicketType, 
-      quantity: parseInt(state.currentTicketQuantity), 
+      description: state.currentTicketDescription,
+      startingQuantity: parseInt(state.currentTicketQuantity), 
+      currentQuantity: parseInt(state.currentTicketQuantity), 
       price: state.currentTicketPrice, 
       fees: state.currentTicketPrice * .16
     }

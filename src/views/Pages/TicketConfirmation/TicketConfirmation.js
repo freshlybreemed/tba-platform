@@ -28,7 +28,6 @@ class TicketConfirmation extends Component {
         count: 0,
         price: 20,
         fees: 2.65
-
       }
     },
     fadeIn: false
@@ -92,7 +91,7 @@ class TicketConfirmation extends Component {
             </Nav>
           </Collapse>
         </Navbar>
-        <div className="app flex-row align-items-center">
+        <div className="app align-items-center">
         <Container>
         <Jumbotron>
           <Media width="100%" src="https://chickenandmumbosauce.com/static/img/930-recap/IMG_8163.jpg"/>
