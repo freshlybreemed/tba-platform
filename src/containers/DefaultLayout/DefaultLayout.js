@@ -1,4 +1,5 @@
 import React, { Component, Suspense } from 'react';
+import { connect } from "react-redux";
 import { Redirect, Route, Switch } from 'react-router-dom';
 import * as router from 'react-router-dom';
 import { Container } from 'reactstrap';
@@ -24,8 +25,13 @@ const DefaultAside = React.lazy(() => import('./DefaultAside'));
 const DefaultFooter = React.lazy(() => import('./DefaultFooter'));
 const DefaultHeader = React.lazy(() => import('./DefaultHeader'));
 
+const mapStateToProps = state => {
+  return { user: state.user };
+};
 class DefaultLayout extends Component {
-
+  constructor(props){
+    super(props)
+  }
   loading = () => <div className="animated fadeIn pt-1 text-center">Loading...</div>
 
   signOut(e) {
@@ -34,6 +40,9 @@ class DefaultLayout extends Component {
   }
 
   render() {
+    // this.props = props
+    console.log(this.props)
+
     return (
       <div className="app">
         <AppHeader fixed>
@@ -89,4 +98,4 @@ class DefaultLayout extends Component {
   }
 }
 
-export default DefaultLayout;
+export default connect(mapStateToProps)(DefaultLayout);

@@ -1,15 +1,36 @@
 import React, { Component } from 'react';
+import ReactQuill from 'react-quill';
+import 'quill/dist/quill.snow.css';
 import { Button, CardHeader, Card, CardBody, CardFooter, FormGroup, Label, FormText, Badge,Col, Table, Container, Collapse, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
 import axios from 'axios'
+import LaddaButton, { EXPAND_LEFT,
+  EXPAND_RIGHT,
+  EXPAND_UP,
+  EXPAND_DOWN,
+  CONTRACT,
+  CONTRACT_OVERLAY,
+  SLIDE_LEFT,
+  SLIDE_RIGHT,
+  SLIDE_UP,
+  SLIDE_DOWN,
+  ZOOM_IN,
+  ZOOM_OUT } from 'react-ladda';
+import { DateRangePicker } from 'react-dates';
+import 'react-dates/lib/css/_datepicker.css';
+import './react_dates_overrides.css';
 import PlacesAutocomplete from 'react-places-autocomplete';
+const initialText = `<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>`
 class Create extends Component {
 
   constructor(props){
     super(props);
-    this.state = {
+    this.state = {      
+      expSlideLeft: false,
       ready: false,
       isOpen: false,
       uploading: false,
+      orientation: 'vertical',
+      openDirection: 'down',
       currentTicketType: '',
       currentTicketQuantity: 0,
       currentTicketName: '',
@@ -19,7 +40,7 @@ class Create extends Component {
       event: {
         title: "",
         organizerId: "",
-        description: "",
+        description: initialText,
         endDate: "",
         startDate: "",
         eventType: "",
@@ -56,6 +77,23 @@ class Create extends Component {
     this.ticketCreation = this.ticketCreation.bind(this)
     this.createTicket = this.createTicket.bind(this)
     this.toggle = this.toggle.bind(this)
+    this.modules = {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['blockquote', 'code-block'],
+        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+        [{ 'direction': 'rtl' }],                         // text direction
+        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+        ['clean']                                         // remove formatting button
+      ]
+    }
 
   }
   componentDidMount () {
@@ -174,12 +212,20 @@ class Create extends Component {
     })
   }
   toggle(type) {
-    if (type !== "cancel" ) {
+    if (type === "expSlideLeft") {
+      console.log(type)
+      this.setState({
+        [type]: !this.state[type],
+        progress: 0.5
+      })
+    } 
+    else if (type !== "cancel" ) {
       this.setState(state => ({ 
         isOpen: true,
         currentTicketType: type
       }),()=>console.log(this.state.currentTicketType));
-    } else {
+    }
+    else {
       this.setState(state => ({ 
         isOpen: !state.isOpen
        }),()=>console.log(this.state));
@@ -254,38 +300,45 @@ class Create extends Component {
       fees: state.currentTicketPrice * .16
     }
     state.event.ticketTypes = tickets
+    state.currentTicketDescription = ''
+    state.currentTicketName= ''
+    state.currentTicketPrice= 0
+    state.currentTicketType= ''
+    state.currentQuantity= 0
+    
     this.setState({
       state,
       isOpen: !state.isOpen
     },()=>console.log(this.state.event.ticketTypes))
   }
   handleChange(evt) {
-    if (evt.target.name.split('.').length>1){
-      var obj = {...this.state}
-      const set = (path, value) => {
-        var schema = obj;  // a moving reference to internal objects within obj
-        var pList = path.split('.');
-        var len = pList.length;
-        for(var i = 0; i < len-1; i++) {
-            var elem = pList[i];
-            if( !schema[elem] ) schema[elem] = {}
-            schema = schema[elem];
-        }
-        schema[pList[len-1]] = value;
+    const set = (path, value) => {
+      var schema = obj;  // a moving reference to internal objects within obj
+      var pList = path.split('.');
+      var len = pList.length;
+      for(var i = 0; i < len-1; i++) {
+          var elem = pList[i];
+          if( !schema[elem] ) schema[elem] = {}
+          schema = schema[elem];
       }
-      console.log(evt.target.name)
-      console.log(evt.target.value)
+      schema[pList[len-1]] = value;
+    }
+    if (typeof evt==="string"){
+      var obj = {...this.state}
+      obj.event.description = evt
+      this.setState({obj},()=> console.log(this.state));
+      // set("event.description",evt)
+    }
+    else if (evt.target.name.split('.').length>1){
+      var obj = {...this.state}
       var ticketType = {}
       if(evt.target.name.split('.')[0] + '.' + evt.target.name.split('.')[1] === "event.ticketTypes"){
-        
       }
+      console.log(evt.target.name, evt.target.value)
       set(evt.target.name, evt.target.value)
       // console.log(obj)
-      this.setState({ ...obj },()=> console.log(this.state));
     }
-    else{
-    this.setState({ [evt.target.name]: evt.target.value },()=> console.log(this.state));
-    }
+    this.setState({ ...obj },()=> console.log(this.state));
   }
   render() {
 
@@ -367,6 +420,17 @@ class Create extends Component {
                   <Label htmlFor="datetime">Start Time</Label>
                 </Col>
                 <Col md="3">
+                {/* <DateRangePicker
+                  startDate={this.state.startDate}
+                  startDateId="startDate"
+                  endDate={this.state.endDate}
+                  endDateId="endDate"
+                  onDatesChange={({startDate, endDate}) => this.setState({startDate, endDate})}
+                  focusedInput={this.state.focusedInput}
+                  onFocusChange={focusedInput => this.setState({focusedInput})}
+                  orientation={this.state.orientation}
+                  openDirection={this.state.openDirection}
+            /> */}
                   <Input type="time" id="time-input" name="time-input" placeholder="time" required/>
                 </Col>
               </FormGroup>
@@ -389,8 +453,7 @@ class Create extends Component {
                   <Label htmlFor="textarea-input">Event Description</Label>
                 </Col>
                 <Col xs="12" md="9">
-                  <Input type="textarea" name="event.description" onChange={this.handleChange} id="textarea-input" rows="9"
-                          placeholder="Include need-to-know information to make it easier for people to search for your event page and buy tickets once they're there...." required/>
+                  <ReactQuill  value={this.state.event.description} name="event.description" onChange={this.handleChange} modules={this.modules} />
                 </Col>
               </FormGroup>
               <FormGroup row>
@@ -434,20 +497,17 @@ class Create extends Component {
               </FormGroup>
               <FormGroup row>
                 <Col md="3">
-                  <Label>Ticket Type</Label>
+                  <Label>Add Tickets</Label>
                 </Col>
                 <Col md="9">
                   <FormGroup check inline>
-                    <Input className="form-check-input" onClick={() => this.toggle("rsvp")} type="radio" id="inline-radio1" name="inline-radios" value="option1" />
-                    <Label className="form-check-label"  check htmlFor="inline-radio1">RSVP</Label>
+                    <Button onClick={() => this.toggle("rsvp")}>RSVP</Button>
                   </FormGroup>
                   <FormGroup check inline>
-                    <Input className="form-check-input" onClick={() => this.toggle("paid")}type="radio" id="inline-radio2" name="inline-radios" value="option2" />
-                    <Label className="form-check-label" check htmlFor="inline-radio2">Paid Ticket</Label>
+                    <Button onClick={() => this.toggle("paid")}>Paid Ticket</Button>
                   </FormGroup>
                   <FormGroup check inline>
-                    <Input className="form-check-input" onClick={() => this.toggle("donation")} type="radio" id="inline-radio3" name="inline-radios" value="option3" />
-                    <Label className="form-check-label" check htmlFor="inline-radio3">Donation</Label>
+                    <Button onClick={() => this.toggle("donation")}>Donation</Button>
                   </FormGroup>
                 </Col>
               </FormGroup>
@@ -485,9 +545,20 @@ class Create extends Component {
             </Form>
           </CardBody>
           <CardFooter>
+            <h6>slide-left</h6>
+            <LaddaButton
+              className="btn btn-info btn-ladda"
+              loading={this.state.expSlideLeft}
+              onClick={() => this.toggle('expSlideLeft')}
+              data-color="blue"
+              data-style={SLIDE_LEFT}
+            >
+            Submit!
+            </LaddaButton>
+            {/* <Button disabled class="btn btn-success btn-ladda" data-style="slide-left" onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button> */}
             {this.state.uploading? 
-            <Button disabled onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>:
-            <Button onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>}
+              <Button disabled class="btn btn-success btn-ladda" data-style="slide-left" onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>:
+              <Button onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>}
             <Button type="reset" size="sm" color="danger"><i className="fa fa-ban"></i> Reset</Button>
           </CardFooter>
         </Card>

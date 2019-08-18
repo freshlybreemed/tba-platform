@@ -1,8 +1,6 @@
 import React, { Component, lazy } from 'react';
 import axios from 'axios'
-import mongo from 'mongodb';
-import { Button, Card, Col,Fade, Media, ListGroup, ListGroupItem, ListGroupItemText,ListGroupItemHeading,Jumbotron, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, DropdownToggle, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
-const ObjectId = mongo.ObjectId;
+import { Badge, Button, Card, Col,Fade, Media, ListGroup, ListGroupItem, ListGroupItemText,ListGroupItemHeading,Jumbotron, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, DropdownToggle, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
 const StripeCheckout = lazy(() => import('../../Widgets/StripeCheckout'))
 class Event extends Component {  
   constructor(props) {
@@ -18,7 +16,7 @@ class Event extends Component {
     eventType: "",
     total: 0,
     event: {
-      "_id" : ObjectId("5d44c4dccd8a030007dc3cb5"),
+      "_id" : "5d44c4dccd8a030007dc3cb5",
       "title" : "The Hav Mercy show",
       "description" : "Going to be soooo much fun. Endless suya and goat and beautiful people celebrating amazing culture.\n\nFeaturing a live band and music by Seagraves. See you all soon!",
       "endDate" : "2019-08-02",
@@ -221,8 +219,8 @@ class Event extends Component {
                     onChange={(e) => this.handleChange(e, ticketType)} />
                   <span onClick={(e) => this.handleIncrement(e,ticketType)}>+</span>
                 </div> :
-                "Sold out"
-                }
+                <Badge className="mr-1" color="secondary">SOLD OUT</Badge>
+              }
               </td>
             </tr>
           </tbody>

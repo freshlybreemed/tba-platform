@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { connect } from "react-redux";
+import { getUser } from "../../redux/actions/index";
+
 import { Badge, UncontrolledDropdown, DropdownItem, DropdownMenu, DropdownToggle, Nav, NavItem } from 'reactstrap';
 import PropTypes from 'prop-types';
 
@@ -8,6 +11,18 @@ import logo from '../../assets/img/brand/logo.svg'
 import sygnet from '../../assets/img/brand/sygnet.svg'
 import { useAuth0 } from "../../react-auth0-wrapper";
 import { longStackSupport } from 'q';
+import axios from 'axios';
+
+const mapStateToProps = state => {
+  return { user: state.user };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getUser: user => dispatch(getUser(user))
+  }
+}
+
 
 const propTypes = {
   children: PropTypes.node,
@@ -15,82 +30,93 @@ const propTypes = {
 
 const defaultProps = {};
 
+let login = 0
 const DefaultHeader = (props) => {
-    const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
-// 
-    // eslint-disable-next-line
-    const { children, ...attributes } = props;
-    return (
-      <React.Fragment>
-        <AppSidebarToggler className="d-lg-none" display="md" mobile />
-        <AppNavbarBrand
-          full={{ src: logo, width: 89, height: 25, alt: 'CoreUI Logo' }}
-          minimized={{ src: sygnet, width: 30, height: 30, alt: 'CoreUI Logo' }}
-        />
-        <AppSidebarToggler className="d-md-down-none" display="lg" />
-
-        <Nav className="d-md-down-none" navbar>
-          <NavItem className="px-3">
-            <NavLink to="/dashboard" className="nav-link" >Home</NavLink>
-          </NavItem>
-          <NavItem className="px-3">
-            <Link to="/#/settings" className="nav-link">Settings</Link>
-          </NavItem>         
-          <NavItem className="px-3">
-            <NavLink to="/myevents" className="nav-link">Manage Events</NavLink>
-          </NavItem>
-          <NavItem className="px-3">
-            <NavLink to="/create" className="nav-link">Create Event</NavLink>
-          </NavItem>
-        </Nav>
-        
-        <Nav className="ml-auto" navbar>
-          <NavItem className="d-md-down-none">
-            <NavLink to="#" className="nav-link"><i className="icon-bell"></i><Badge pill color="danger">5</Badge></NavLink>
-          </NavItem>
-          <NavItem className="d-md-down-none">
-            <NavLink to="#" className="nav-link"><i className="icon-list"></i></NavLink>
-          </NavItem>
-          <NavItem className="d-md-down-none">
-            <NavLink to="#" className="nav-link"><i className="icon-location-pin"></i></NavLink>
-          </NavItem>
-          <UncontrolledDropdown nav direction="down">
-            <DropdownToggle nav>
-              <img src={'../../assets/img/avatars/6.jpg'} className="img-avatar" alt="admin@bootstrapmaster.com" />
-            </DropdownToggle>
-            <DropdownMenu right>
-              <DropdownItem header tag="div" className="text-center"><strong>Account</strong></DropdownItem>
-              <DropdownItem><i className="fa fa-bell-o"></i> Updates<Badge color="info">42</Badge></DropdownItem>
-              <DropdownItem><i className="fa fa-envelope-o"></i> Messages<Badge color="success">42</Badge></DropdownItem>
-              <DropdownItem><i className="fa fa-tasks"></i> Tasks<Badge color="danger">42</Badge></DropdownItem>
-              <DropdownItem><i className="fa fa-comments"></i> Comments<Badge color="warning">42</Badge></DropdownItem>
-              <DropdownItem header tag="div" className="text-center"><strong>Settings</strong></DropdownItem>
-              <DropdownItem><i className="fa fa-user"></i> Profile</DropdownItem>
-              <DropdownItem><a href="/#/settings"><i className="fa fa-wrench"></i> Settings </a></DropdownItem>
-              <DropdownItem><i className="fa fa-usd"></i> Payments<Badge color="secondary">42</Badge></DropdownItem>
-              <DropdownItem><i className="fa fa-file"></i> Projects<Badge color="primary">42</Badge></DropdownItem>
-              <DropdownItem><i className="fa fa-file"></i><Link to="/external-api">External API</Link></DropdownItem>
-              <DropdownItem><i className="fa fa-file"></i>  {!isAuthenticated && (<button onClick={() => loginWithRedirect({})}>Log in</button>)} {isAuthenticated && <button onClick={() => logout()}>Log out</button>}{isAuthenticated && (
-      <span>
-        <Link to="/">Home</Link>&nbsp;
-        <Link to="/profile">Profile</Link>
-      </span>
-    )}
-
-</DropdownItem>
-              <DropdownItem divider />
-              {/* <DropdownItem><i className="fa fa-shield"></i> Lock Account</DropdownItem> */}
-              <DropdownItem onClick={e => this.props.onLogout(e)}><i className="fa fa-lock"></i> Logout</DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
-        </Nav>
-        <AppAsideToggler className="d-md-down-none" />
-        {/*<AppAsideToggler className="d-lg-none" mobile />*/}
-      </React.Fragment>
-    );
+  const { isAuthenticated, loginWithRedirect, logout, loading, user} = useAuth0();
+  if (!loading && user && login===0) {
+    console.log(user)
+    axios.post('/user',user)
+    .then(res=>{
+      console.log(res)  
+      props.getUser(res.data.value);
+      login++;
+      })
+    }
+  
+  // eslint-disable-next-line
+  const { children, ...attributes } = props;
+  console.log(props.user)
+  return (
+    <React.Fragment>
+      <AppSidebarToggler className="d-lg-none" display="md" mobile />
+      <AppNavbarBrand
+        onClick={()=>props.getUser({given_name:"Ebrima"})}
+        full={{ src: logo, width: 89, height: 25, alt: 'CoreUI Logo' }}
+        minimized={{ src: sygnet, width: 30, height: 30, alt: 'CoreUI Logo' }}
+      />
+      <AppSidebarToggler className="d-md-down-none" display="lg" />
+      <Nav className="d-md-down-none" navbar>
+        <NavItem className="px-3">
+          <NavLink to="/dashboard" className="nav-link" >Home</NavLink>
+        </NavItem>
+        <NavItem className="px-3">
+          <Link to="/#/settings" className="nav-link">Settings</Link>
+        </NavItem>         
+        <NavItem className="px-3">
+          <NavLink to="/myevents" className="nav-link">Manage Events</NavLink>
+        </NavItem>
+        <NavItem className="px-3">
+          <NavLink to="/create" className="nav-link">Create Event</NavLink>
+        </NavItem>
+      </Nav>
+      
+      <Nav className="ml-auto" navbar>
+        <NavItem className="d-md-down-none">
+          <NavLink to="#" className="nav-link"><i className="icon-bell"></i><Badge pill color="danger">5</Badge></NavLink>
+        </NavItem>
+        <NavItem className="d-md-down-none">
+          <NavLink to="#" className="nav-link"><i className="icon-list"></i></NavLink>
+        </NavItem>
+        <NavItem className="d-md-down-none">
+          <NavLink to="#" className="nav-link"><i className="icon-location-pin"></i></NavLink>
+        </NavItem>
+        <UncontrolledDropdown nav direction="down">
+          <DropdownToggle nav>
+            <img src={'../../assets/img/avatars/6.jpg'} className="img-avatar" alt={props.user.given_name?props.user.given_name: "admin@google"} />
+          </DropdownToggle>
+          <DropdownMenu right>
+            <DropdownItem header tag="div" className="text-center"><strong>Account</strong></DropdownItem>
+            <DropdownItem><i className="fa fa-bell-o"></i> Updates<Badge color="info">42</Badge></DropdownItem>
+            <DropdownItem><i className="fa fa-envelope-o"></i> Messages<Badge color="success">42</Badge></DropdownItem>
+            <DropdownItem><i className="fa fa-tasks"></i> Tasks<Badge color="danger">42</Badge></DropdownItem>
+            <DropdownItem><i className="fa fa-comments"></i> Comments<Badge color="warning">42</Badge></DropdownItem>
+            <DropdownItem header tag="div" className="text-center"><strong>Settings</strong></DropdownItem>
+            <DropdownItem><i className="fa fa-user"></i> Profile</DropdownItem>
+            <DropdownItem><a href="/#/settings"><i className="fa fa-wrench"></i> Settings </a></DropdownItem>
+            <DropdownItem><i className="fa fa-usd"></i> Payments<Badge color="secondary">42</Badge></DropdownItem>
+            {!isAuthenticated && <DropdownItem><i className="fa fa-file"></i> Projects<Badge color="primary">42</Badge></DropdownItem>}
+            <DropdownItem><i className="fa fa-file"></i><Link to="/external-api">External API</Link></DropdownItem>
+            {/* <DropdownItem><i className="fa fa-file"></i>   */}
+            {!isAuthenticated && 
+              (<DropdownItem onClick={() => loginWithRedirect({})}><i className="fa fa-file"></i>Log in</DropdownItem>)} {isAuthenticated && <DropdownItem onClick={() => logout()}><i className="fa fa-lock"></i>Log out</DropdownItem>}
+            {isAuthenticated && (
+              <span>
+                <Link to="/">Home</Link>&nbsp;
+                <Link to="/profile">Profile</Link>
+              </span>)}
+              {/* </DropdownItem> */}
+            <DropdownItem divider />
+            {/* <DropdownItem><i className="fa fa-shield"></i> Lock Account</DropdownItem> */}
+          </DropdownMenu>
+        </UncontrolledDropdown>
+      </Nav>
+      <AppAsideToggler className="d-md-down-none" />
+    {/*<AppAsideToggler className="d-lg-none" mobile />*/}
+    </React.Fragment>
+  );
 }
 
 DefaultHeader.propTypes = propTypes;
 DefaultHeader.defaultProps = defaultProps;
 
-export default DefaultHeader;
+export default connect(mapStateToProps, mapDispatchToProps)(DefaultHeader);

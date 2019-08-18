@@ -1,14 +1,10 @@
-import React, { Component, lazy, Suspense } from 'react';
+import React, { Component, lazy } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
-import mongo from 'mongodb';
 
 import axios from 'axios'
 import {
   Badge,
   Button,
-  ButtonDropdown,
-  ButtonGroup,
-  ButtonToolbar,
   Card,
   CardBody,
   CardFooter,
@@ -26,7 +22,6 @@ import {
 } from 'reactstrap';
 import { CustomTooltips } from '@coreui/coreui-plugin-chartjs-custom-tooltips';
 import { getStyle, hexToRgba } from '@coreui/coreui/dist/js/coreui-utilities'
-const ObjectId = mongo.ObjectId;
 
 const Widget03 = lazy(() => import('../../views/Widgets/Widget03'));
 
@@ -92,8 +87,6 @@ const cardChartOpts1 = {
     },
   }
 }
-
-
 // Card Chart 2
 const cardChartData2 = {
   labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
@@ -469,7 +462,7 @@ class Manage extends Component {
 
     this.state = {
       dropdownOpen: false,
-      isEventFetched: true,
+      isEventFetched: false,
       radioSelected: 2,
       event: {
           "_id": "5d45347642ff74000796a2f6",
@@ -28408,21 +28401,14 @@ class Manage extends Component {
         .then(res => {
           console.log(res)
           event = res.data[0]
-          this.setState({event})
+          this.setState({event, isEventFetched: true})
+          this.salesData()
         })
         .catch(err=>console.log(err))
+    } else {
+      this.setState({isEventFetched:true})
+      this.salesData()
     }
-    this.salesData()
-  }
-  getBalance(){
-    const tickets = this.state.event.tickets
-    // for (let tix in tickets){
-    // const bal = String(res.data.pending[0].amount)
-    // const balance = "$"+ bal.slice(2) +"."+ bal.slice(-2)
-    // }
-    // this.setState({
-    //   balance
-    // })
   }
   salesData(){
     // console.log('ticketsSold')
@@ -28432,7 +28418,6 @@ class Manage extends Component {
     let totalBalance = 0
     let ticketTypes = this.state.event.ticketTypes;
     var totalTotalCount = 0
-    console.log("yesterday: "+yesterday)
     this.state.event.tickets.forEach((ticket)=>{
       for (let ticketType in ticket.metadata){
         if(typeof ticket.metadata.eventId !=="undefined" && ticketType !== "eventId"){
@@ -28641,6 +28626,61 @@ class Manage extends Component {
           </Col>
         </Row> */}
 
+        <h4>Traffic & Sales</h4> 
+        <Row>
+          <Col xs="12" sm="6" lg="3">
+            <Card>
+              <CardBody>
+              {/* <div className="callout callout-info"> */}
+                <small className="text-muted">Tickets Sold</small>
+                <br />
+                <strong className="h4">{this.state.totalTotalCount}</strong>
+                <div className="chart-wrapper">
+                  <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
+                </div>
+              {/* </div> */}
+              </CardBody>
+          </Card>
+            
+          </Col>
+          <Col xs="12" sm="6" lg="3">
+            <Card>
+              <CardBody>
+                <small className="text-muted">Balance </small>
+                <br />
+                <strong className="h4">${this.state.totalBalance}</strong>
+                <div className="chart-wrapper">
+                  <Line data={makeSparkLineData(0, brandInfo)} options={sparklineChartOpts} width={100} height={30} />
+                </div>
+              </CardBody>
+            </Card>
+            
+          </Col>
+          <Col xs="12" sm="6" lg="3">
+            <Card>
+              <CardBody>                       
+                <small className="text-muted">Pageviews</small>
+                <br />
+                <strong className="h4">78,623</strong>
+                <div className="chart-wrapper">
+                  <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
+                </div>
+            </CardBody>                       
+          </Card>
+          </Col>
+          <Col xs="12" sm="6" lg="3">
+            <Card>
+              <CardBody>                       
+                <small className="text-muted">24-Hour Sales</small>
+                <br />
+                <strong className="h4">{this.state.ticketDayCount? this.state.ticketDayCount + (this.state.ticketDayCount>1? " Tickets" : " Ticket"): "0"}</strong>
+                <div className="chart-wrapper">
+                  <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
+                </div>
+            </CardBody>                       
+          </Card>
+        </Col>
+        </Row>
         <Row>
           <Col>
             <Card>
@@ -28649,63 +28689,7 @@ class Manage extends Component {
               </CardHeader>
               <CardBody>
                 <Row>
-                  <Col xs="12" md="6" xl="6">
-                  <h4>Traffic & Sales</h4> 
-                    <Row>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>
-                          {/* <div className="callout callout-info"> */}
-                            <small className="text-muted">Tickets Sold</small>
-                            <br />
-                            <strong className="h4">{this.state.totalTotalCount}</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                          {/* </div> */}
-                          </CardBody>
-                      </Card>
-                        
-                      </Col>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>
-                            <small className="text-muted">Balance </small>
-                            <br />
-                            <strong className="h4">${this.state.totalBalance}</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(0, brandInfo)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                          </CardBody>
-                        </Card>
-                        
-                      </Col>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>                       
-                            <small className="text-muted">Pageviews</small>
-                            <br />
-                            <strong className="h4">78,623</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                        </CardBody>                       
-                      </Card>
-                      </Col>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>                       
-                            <small className="text-muted">24-Hour Sales</small>
-                            <br />
-                            <strong className="h4">{this.state.ticketDayCount? this.state.ticketDayCount + (this.state.ticketDayCount>1? " Tickets" : " Ticket"): ""}</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                        </CardBody>                       
-                      </Card>
-                      </Col>
-                    </Row>
-                    </Col>
+
                     <Col> 
                     <hr className="mt-0" />
                     <h4>Recent Orders</h4>
@@ -28747,6 +28731,9 @@ class Manage extends Component {
                             </td>
                             <td className="text-center">
                               <i className="fa fa-cc-visa" style={{ fontSize: 24 + 'px' }}></i>
+                            </td>
+                            <td>
+                              <strong>$12.54</strong>
                             </td>
                             <td>
                               <strong>$12.54</strong>

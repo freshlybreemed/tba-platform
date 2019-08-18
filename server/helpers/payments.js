@@ -52,6 +52,7 @@ const stripeChargeCallback = (res, metadata) => async (err, charge) => {
       console.log( await collection.findOneAndUpdate({_id: ObjectId(metadata.eventId)},{$inc:obj},{returnNewDocument:true}))
     }
    redirect(res, 200, `/event/${metadata.eventId}/confirmation`)
+   balanceApi(metadata.eventId)
   }
 };
 const ticketApi = async (req, res) => {
@@ -65,7 +66,7 @@ const ticketApi = async (req, res) => {
   console.log(body)
   stripe.charges.create(body, stripeChargeCallback(res, body.metadata));
 };
-const updateAndSaveApi = async (res, id, list) => {
+const updateAndSaveApi = async (id, list) => {
 
    // Connect to MongoDB and get the database
    const database = await connect()
@@ -76,12 +77,12 @@ const updateAndSaveApi = async (res, id, list) => {
    console.log('updating')
    // Respond with a JSON string of all users in the collection
    let result = await collection.findOneAndUpdate({_id:ObjectId(id)},{$set: {"tickets":list}},{returnNewDocument: true})
-   send(res, 200,result);
+   console.log(result);
 
 }
-const balanceApi = async (req, res)  => { 
+const balanceApi = async (id)  => { 
+  
   // Get events
-  const { query } = parse(req.url, true);
   var count = 0
   var charges = []
   await stripe.charges.list({limit: 100}).autoPagingEach(function(customer) {
@@ -89,7 +90,7 @@ const balanceApi = async (req, res)  => {
     count++
     charges.push(customer)
     // console.log(customer)
-  }).then(()=>updateAndSaveApi(res, query.id, charges))
+  }).then(()=>updateAndSaveApi(id, charges))
   
 }
 
@@ -120,6 +121,5 @@ const createAccount = async (req, res) => {
 module.exports = {
   ticketApi,
   createAccount,
-  getEventApi: cors(getEventApi),
   balanceApi : cors(balanceApi)
 };
