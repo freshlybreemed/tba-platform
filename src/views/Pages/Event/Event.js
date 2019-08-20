@@ -1,6 +1,6 @@
 import React, { Component, lazy } from 'react';
 import axios from 'axios'
-import { Badge, Button, Card, Col,Fade, Media, ListGroup, ListGroupItem, ListGroupItemText,ListGroupItemHeading,Jumbotron, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, DropdownToggle, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
+import { Badge, Button, Card, Col,Fade, Media, Jumbotron, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
 const StripeCheckout = lazy(() => import('../../Widgets/StripeCheckout'))
 class Event extends Component {  
   constructor(props) {
@@ -18,7 +18,7 @@ class Event extends Component {
     event: {
       "_id" : "5d44c4dccd8a030007dc3cb5",
       "title" : "The Hav Mercy show",
-      "description" : "Going to be soooo much fun. Endless suya and goat and beautiful people celebrating amazing culture.\n\nFeaturing a live band and music by Seagraves. See you all soon!",
+      "description" : "<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>",
       "endDate" : "2019-08-02",
       "startDate" : "2019-08-02",
       "eventType" : "17",
@@ -201,7 +201,7 @@ class Event extends Component {
               <td className="text-center">
                 <div>{ticket.name}</div>
                 <div className="small text-muted">
-                  <span>One (1) Drink Ticket</span> 
+                  <span>{ticket.description}</span> 
                 </div>
               </td>
               <td>
@@ -269,7 +269,7 @@ class Event extends Component {
                 <br />
                 <Row>
                   <Col>
-                    {this.state.isEventFetched?  event.description.split("\n").map((i,key) => { return <p key={key}>{i}</p> }) : ""}
+                    {this.state.isEventFetched?  <div dangerouslySetInnerHTML={{__html: event.description}}></div> : ""}
                   </Col>
                   <Col>
                     <p> 

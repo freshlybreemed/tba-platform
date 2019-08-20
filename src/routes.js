@@ -67,7 +67,7 @@ const routes = [
   { path: '/theme', exact: true, name: 'Theme', component: Colors },
   { path: '/theme/colors', name: 'Colors', component: Colors },
   { path: '/theme/typography', name: 'Typography', component: Typography },
-  { path: '/AccountSettings', exact: true, name: 'AccountSettings', component: AccountSettings },
+  { path: '/settings', exact: true, name: 'AccountSettings', component: AccountSettings },
   { path: '/base/cards', name: 'Cards', component: Cards },
   { path: '/base/forms', name: 'Forms', component: Forms },
   { path: '/base/switches', name: 'Switches', component: Switches },
@@ -146,7 +146,8 @@ const routes = [
   { path: '/apps/invoicing', name: 'Invoice', component: Invoice, exact: true },
   { path: '/apps/invoicing/invoice', name: 'Invoice', component: Invoice },
   { path: '/users', exact: true,  name: 'Users', component: Users },
-  { path: '/users/:id', exact: true, name: 'User Details', component: User }
+  { path: '/users/:id', exact: true, name: 'User Details', component: User },
+  { path: '/edit/:id', exact: true, name: 'Edit Event', component: Create }
 ];
 
 export default routes;

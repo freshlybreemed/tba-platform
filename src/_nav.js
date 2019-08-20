@@ -38,7 +38,7 @@ export default {
     },
     {
       name: 'Account Information',
-      url: '/AccountSettings',
+      url: '/settings',
       icon: 'icon-puzzle'
     },
     {

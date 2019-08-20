@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from "react-redux";
-import { Button, ButtonDropdown, CardColumns, CardHeader, Card, CardBody, CardFooter,Dropdown,DropdownMenu, DropdownToggle, DropdownItem, DropdownItemProps, FormGroup, Label,ListGroupItem, ListGroup, FormText, Badge,Col, Container, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
-import { Bar, Doughnut, Line, Pie, Polar, Radar } from 'react-chartjs-2';
+import { Button, ButtonDropdown, Card, CardBody,DropdownMenu, DropdownToggle, DropdownItem, Jumbotron,ListGroupItem, ListGroup, Col, Row } from 'reactstrap';
 import axios from 'axios';
 
 const mapStateToProps = state => {
-  return { user: state.user };
+  const { user, events } = state
+  return { user, events };
 };class MyEvents extends Component {
   constructor(props) {
     super(props);
@@ -18,7 +18,12 @@ const mapStateToProps = state => {
     this.getTime = this.getTime.bind(this)
     this.state = {
       dropdownOpen: new Array(19).fill(false),
-      events: [
+    }
+
+  }
+  componentDidMount(){
+    if (process.env.NODE_ENV === "development") {
+      const events= [
         {
           "_id": "5d44c4dccd8a030007dc3cb5",
           "title": "The Hav Mercy show",
@@ -167,17 +172,7 @@ const mapStateToProps = state => {
           "organizerId": "123"
         }
       ]
-    };
-
-  }
-  componentDidMount(){
-    if (process.env.NODE_ENV !== "development") {
-      axios.get(`/api/eventsByOrganizer/${this.props.user.sub}`).then(res=>{
-        console.log(res)
-        this.setState({events: res.data})
-      }).catch(err=>{
-        console.log(err)
-      })
+      this.setState(events)
     }
     this.renderCurrentEvents()
     this.renderDraftEvents()
@@ -212,7 +207,7 @@ const mapStateToProps = state => {
   }
   renderCurrentEvents(){
     let currentEvents = []
-    this.state.events.map(event=>{
+    this.props.events.map(event=>{
       console.log(event)
       if (event.eventStatus === 'live' && new Date(event.startDate).getTime() >new Date().getTime()) {
         currentEvents.push(
@@ -227,7 +222,7 @@ const mapStateToProps = state => {
                 </DropdownToggle>
                 <DropdownMenu right>
                   <DropdownItem tag={Link} to={`/manage/${event._id}`}>Manage</DropdownItem>
-                  <DropdownItem>Edit</DropdownItem>
+                  <DropdownItem tag={Link} to={`/edit/${event._id}`}>Edit</DropdownItem>
                   <DropdownItem tag={Link} to={`/event/${event._id}`}>View</DropdownItem>
                 </DropdownMenu>
               </ButtonDropdown>
@@ -240,7 +235,7 @@ const mapStateToProps = state => {
   }
   renderDraftEvents(){
     let draftEvents = []
-    this.state.events.map(event=>{
+    this.props.events.map(event=>{
       console.log(event)
       if (event.eventStatus === 'draft') {
     let draftEvents = []
@@ -270,7 +265,7 @@ const mapStateToProps = state => {
   }
   renderPastEvents(){
     let pastEvents = []
-    this.state.events.map(event=>{
+    this.props.events.map(event=>{
       console.log(event)
       if (event.eventStatus === 'live' && new Date(event.startDate).getTime() <new Date().getTime()) {
         pastEvents.push(
@@ -297,20 +292,37 @@ const mapStateToProps = state => {
     return pastEvents
   }
   render() {
-    console.log(this.props.user)
+    console.log(this.props)
+    const { events, user } = this.props
 
     return (
       <div className="animated fadeIn">
       <Row>
         <Col>
-          <h5>Current Events</h5>
-          {this.renderCurrentEvents()}
-          <br />
-          <h5>Event Drafts</h5>
-          {this.renderDraftEvents()}
-          <br />
-          <h5>Past Events</h5>
-          {this.renderPastEvents()}
+        {typeof events !== 'undefined' && events.length> 0 ?
+          <div>
+            <h5>Current Events</h5>
+            {this.renderCurrentEvents()}
+            <br />
+            <h5>Event Drafts</h5>
+            {this.renderDraftEvents()}
+            <br />
+            <h5>Past Events</h5>
+            {this.renderPastEvents()}
+          </div> : 
+          <Card>
+            <CardBody>
+              <Jumbotron>
+                <h1 className="display-3">Welcome to TBA!</h1>
+                <p className="lead">A new way to connect the community with experiences</p>
+                <hr className="my-2" />
+                <p>Come join the family!</p>
+                <p className="lead">
+                  <Button href="#/create" color="primary">Create an Event</Button>
+                </p>
+              </Jumbotron>
+            </CardBody>
+          </Card>}
         </Col>
       </Row>
     </div>

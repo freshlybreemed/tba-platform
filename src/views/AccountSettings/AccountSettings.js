@@ -2,21 +2,9 @@ import React, { Component } from 'react';
 import ReactQuill from 'react-quill';
 import 'quill/dist/quill.snow.css';
 import { TextMask, InputAdapter } from 'react-text-mask-hoc';
-import { useAuth0 } from "../../react-auth0-wrapper";
 import { Button, CardHeader, Card, CardBody, CardFooter, FormGroup, Label, FormText, Badge,Col, Table, Container, Collapse, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
 import axios from 'axios'
-import LaddaButton, { EXPAND_LEFT,
-  EXPAND_RIGHT,
-  EXPAND_UP,
-  EXPAND_DOWN,
-  CONTRACT,
-  CONTRACT_OVERLAY,
-  SLIDE_LEFT,
-  SLIDE_RIGHT,
-  SLIDE_UP,
-  SLIDE_DOWN,
-  ZOOM_IN,
-  ZOOM_OUT } from 'react-ladda';
+import LaddaButton, { SLIDE_LEFT } from 'react-ladda';
 import { DateRangePicker } from 'react-dates';
 import { connect } from "react-redux";
 import 'react-dates/lib/css/_datepicker.css';
@@ -128,11 +116,11 @@ class AccountSettings extends Component {
       data: formData,
     })
     .then(res => {
-      let event = this.state.event
-      event.image.cdnUri = res.data.url
-      let link = "https:"+event.image.cdnUri.split(':')[1]  
+      let user = this.props.user
+      user.picture = res.data.url
+      let link = "https:"+user.picture.split(':')[1]  
       console.log(link)
-      this.setState({event, uploading: false})
+      this.setState({user, uploading: false})
     })
     .catch(err =>{
       this.setState({uploading: false})
@@ -293,7 +281,7 @@ class AccountSettings extends Component {
                   <Label htmlFor="text-input">Last Name</Label>
                 </Col>
                 <Col xs="12" md="9">
-                  <Input type="text" id="text-input" onChange={this.handleChange} name="lastName" required/>
+                  <Input type="text" id="text-input" value={this.props.user.family_name} onChange={this.handleChange} name="lastName" required/>
                 </Col>
               </FormGroup>
               <FormGroup row>

@@ -1,25 +1,20 @@
 import React, { Component } from 'react';
 import ReactQuill from 'react-quill';
 import 'quill/dist/quill.snow.css';
+import { connect } from 'react-redux'
 import { Button, CardHeader, Card, CardBody, CardFooter, FormGroup, Label, FormText, Badge,Col, Table, Container, Collapse, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
 import axios from 'axios'
-import LaddaButton, { EXPAND_LEFT,
-  EXPAND_RIGHT,
-  EXPAND_UP,
-  EXPAND_DOWN,
-  CONTRACT,
-  CONTRACT_OVERLAY,
-  SLIDE_LEFT,
-  SLIDE_RIGHT,
-  SLIDE_UP,
-  SLIDE_DOWN,
-  ZOOM_IN,
-  ZOOM_OUT } from 'react-ladda';
+import LaddaButton, { SLIDE_LEFT } from 'react-ladda';
 import { DateRangePicker } from 'react-dates';
 import 'react-dates/lib/css/_datepicker.css';
 import './react_dates_overrides.css';
 import PlacesAutocomplete from 'react-places-autocomplete';
 const initialText = `<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>`
+
+const mapStateToProps = state => {
+  const { user, events } = state;
+  return { user, events };
+};
 class Create extends Component {
 
   constructor(props){
@@ -68,7 +63,7 @@ class Create extends Component {
         },
         user: "",
         doorTime: "",
-        eventStatus: ""
+        eventStatus: "draft"
       }
     }
     this.handleChange = this.handleChange.bind(this)
@@ -76,6 +71,7 @@ class Create extends Component {
     this.processUpload = this.processUpload.bind(this)
     this.ticketCreation = this.ticketCreation.bind(this)
     this.createTicket = this.createTicket.bind(this)
+    this.autocompleteInit = this.autocompleteInit.bind(this)
     this.toggle = this.toggle.bind(this)
     this.modules = {
       toolbar: [
@@ -97,6 +93,13 @@ class Create extends Component {
 
   }
   componentDidMount () {
+    console.log(window.location.hash.split('/')[1])
+    let event = this.state.event
+    event.organizerId = this.props.user.sub
+    this.setState({event},()=>console.log(this.state.event))
+    this.autocompleteInit()
+  }
+  autocompleteInit(){
     var set = () => this.setState({ready: true})
     const script = document.createElement("script");
     script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBWqhUxBtnG59S2Lx47umesuG-NnLpMGSA&libraries=places";
@@ -104,7 +107,6 @@ class Create extends Component {
     script.onload = set 
     document.body.appendChild(script)
   }
-
   processUpload = async e => {
     console.log(e.target.files[0])
     const files = Array.from(e.target.files)
@@ -199,10 +201,12 @@ class Create extends Component {
   };
   handleSubmit(e) {
     e.preventDefault();
+    let event = this.state.event
+    event.eventStatus = 'live'
     axios('/event',{
       method: 'POST',
       data: {
-          "event": {...this.state.event}
+          event
       },
     }).then((res) => {
       console.log("RESPONSE RECEIVED: ", res);
@@ -240,7 +244,7 @@ class Create extends Component {
           <Label htmlFor="text-input">Name</Label>
         </Col>
         <Col xs="12" md="9">
-          <Input type="text" id="text-input" onChange={this.handleChange} name="currentTicketName" required/>
+          <Input type="text" id="text-input" value={this.state.currentTicketName} onChange={this.handleChange} name="currentTicketName" required/>
           <FormText color="muted"></FormText>
         </Col>
       </FormGroup>
@@ -252,7 +256,7 @@ class Create extends Component {
           <Label htmlFor="text-input">Quantity</Label>
         </Col>
         <Col>
-          <Input type="text" id="text-input" onChange={this.handleChange} name="currentTicketQuantity" required/>
+          <Input type="text" id="text-input" value={this.state.currentTicketQuantity} onChange={this.handleChange} name="currentTicketQuantity" required/>
           <FormText color="muted"></FormText>
         </Col>
       </FormGroup> : '' }
@@ -266,7 +270,7 @@ class Create extends Component {
               <InputGroupAddon addonType="prepend">
                 <InputGroupText>$</InputGroupText>
               </InputGroupAddon>
-              <Input type="number" id="text-input" onChange={this.handleChange} name="currentTicketPrice"  required/>
+              <Input type="number" id="text-input" value={this.state.currentTicketPrice} onChange={this.handleChange} name="currentTicketPrice"  required/>
             </InputGroup>
           </Col>
         </FormGroup> : ''}
@@ -275,7 +279,7 @@ class Create extends Component {
           <Label htmlFor="text-input">Ticket Description</Label>
         </Col>
         <Col xs="12" md="9">
-          <Input type="text" name="currentTicketDescription" onChange={this.handleChange} id="text-input" rows="9"
+          <Input type="text" name="currentTicketDescription" value={this.state.currentTicketDescription} onChange={this.handleChange} id="text-input" rows="9"
                   placeholder="Include need-to-know information here...." required/>
         </Col>
         <Col>
@@ -296,15 +300,15 @@ class Create extends Component {
       description: state.currentTicketDescription,
       startingQuantity: parseInt(state.currentTicketQuantity), 
       currentQuantity: parseInt(state.currentTicketQuantity), 
-      price: state.currentTicketPrice, 
+      price: parseInt(state.currentTicketPrice),
       fees: state.currentTicketPrice * .16
     }
     state.event.ticketTypes = tickets
     state.currentTicketDescription = ''
     state.currentTicketName= ''
-    state.currentTicketPrice= 0
+    state.currentTicketPrice= ''
     state.currentTicketType= ''
-    state.currentQuantity= 0
+    state.currentTicketQuantity= ''
     
     this.setState({
       state,
@@ -312,6 +316,7 @@ class Create extends Component {
     },()=>console.log(this.state.event.ticketTypes))
   }
   handleChange(evt) {
+    // console.log(evt.target.name)
     const set = (path, value) => {
       var schema = obj;  // a moving reference to internal objects within obj
       var pList = path.split('.');
@@ -327,18 +332,23 @@ class Create extends Component {
       var obj = {...this.state}
       obj.event.description = evt
       this.setState({obj},()=> console.log(this.state));
-      // set("event.description",evt)
+      return
     }
-    else if (evt.target.name.split('.').length>1){
+    if (evt.target.name.split('.').length>1){
+      console.log(evt.target.name)
       var obj = {...this.state}
       var ticketType = {}
       if(evt.target.name.split('.')[0] + '.' + evt.target.name.split('.')[1] === "event.ticketTypes"){
       }
       console.log(evt.target.name, evt.target.value)
       set(evt.target.name, evt.target.value)
-      // console.log(obj)
+      this.setState({ ...obj },()=> console.log(this.state));
+
+    }else{
+      console.log({[evt.target.name]: evt.target.value})
+      this.setState({[evt.target.name]: evt.target.value}, () => console.log(this.state))
     }
-    this.setState({ ...obj },()=> console.log(this.state));
+    
   }
   render() {
 
@@ -349,7 +359,7 @@ class Create extends Component {
 
         <Card>
           <CardHeader>
-            <strong>Create Event</strong>
+            <strong>{window.location.hash.split('/')[1] !== 'edit'? "Create Event": "Edit Event"}</strong>
           </CardHeader>
           <CardBody>
             <Form action="" method="post" encType="multipart/form-data" className="form-horizontal">
@@ -571,4 +581,4 @@ class Create extends Component {
   }
 }
 
-export default Create;
+export default connect(mapStateToProps)(Create);
