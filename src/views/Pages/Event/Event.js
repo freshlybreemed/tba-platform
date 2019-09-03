@@ -1,10 +1,23 @@
 import React, { Component, lazy } from 'react';
 import axios from 'axios'
-import mongo from 'mongodb';
-import { Button, Card, Col,Fade, Media, ListGroup, ListGroupItem, ListGroupItemText,ListGroupItemHeading,Jumbotron, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, DropdownToggle, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
-const ObjectId = mongo.ObjectId;
+import { connect } from "react-redux";
+import { getUser, getEvents } from "../../../redux/actions/index";
+import { Badge, Button, Card, Col,Fade, Media, Jumbotron, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
 const StripeCheckout = lazy(() => import('../../Widgets/StripeCheckout'))
+
+const mapStateToProps = state => {
+  console.log(state)
+  const { event } = state 
+  return { event };
+};
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getEvents: events => dispatch(getEvents(events))
+  }
+}
+
 class Event extends Component {  
+
   constructor(props) {
   super(props);
 
@@ -14,13 +27,12 @@ class Event extends Component {
     collapse: false,
     gaCount: 0,
     quantity:0,
-    eventId: 342,
     eventType: "",
     total: 0,
     event: {
-      "_id" : ObjectId("5d44c4dccd8a030007dc3cb5"),
+      "_id" : "5d44c4dccd8a030007dc3cb5",
       "title" : "The Hav Mercy show",
-      "description" : "Going to be soooo much fun. Endless suya and goat and beautiful people celebrating amazing culture.\n\nFeaturing a live band and music by Seagraves. See you all soon!",
+      "description" : "<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>",
       "endDate" : "2019-08-02",
       "startDate" : "2019-08-02",
       "eventType" : "17",
@@ -91,8 +103,9 @@ class Event extends Component {
             ticketTypes[ticket] = event.ticketTypes[ticket]
             ticketTypes[ticket].count = 0
           }
+          this.props.getEvents(event);
+
           this.setState({ 
-            event,
             isEventFetched: true,
           },()=>console.log(this.state));
       })
@@ -103,8 +116,8 @@ class Event extends Component {
         ticketTypes[ticket] = event.ticketTypes[ticket]
         ticketTypes[ticket].count = 0
       }
+      this.props.getEvents(event);
       this.setState({ 
-        event,
         isEventFetched: true,
       },()=>console.log(this.state));
     }
@@ -203,7 +216,7 @@ class Event extends Component {
               <td className="text-center">
                 <div>{ticket.name}</div>
                 <div className="small text-muted">
-                  <span>One (1) Drink Ticket</span> 
+                  <span>{ticket.description}</span> 
                 </div>
               </td>
               <td>
@@ -221,8 +234,8 @@ class Event extends Component {
                     onChange={(e) => this.handleChange(e, ticketType)} />
                   <span onClick={(e) => this.handleIncrement(e,ticketType)}>+</span>
                 </div> :
-                "Sold out"
-                }
+                <Badge className="mr-1" color="secondary">SOLD OUT</Badge>
+              }
               </td>
             </tr>
           </tbody>
@@ -271,7 +284,7 @@ class Event extends Component {
                 <br />
                 <Row>
                   <Col>
-                    {this.state.isEventFetched?  event.description.split("\n").map((i,key) => { return <p key={key}>{i}</p> }) : ""}
+                    {this.state.isEventFetched?  <div dangerouslySetInnerHTML={{__html: event.description}}></div> : ""}
                   </Col>
                   <Col>
                     <p> 
@@ -287,7 +300,7 @@ class Event extends Component {
                     <Fade in={this.state.fadeIn && this.state.collapse && this.state.quantity > 0} tag="h5" className="mt-3">
                       {/* <Button color="success" size="lg" style={{ marginBottom: '1rem' }}>Checkout</Button> */}
                       <div>Total: ${this.state.total}</div>
-                      <StripeCheckout metadata={ !event ? {}:{tickets: event.ticketTypes, id:event._id, total: this.state.total}}/>
+                      <StripeCheckout metadata={ !this.state.event ? {}:{tickets: this.state.event.ticketTypes, id:this.state.event._id, total: this.state.total, updatedAt: this.state.event.updatedAt}}/>
                     </Fade>
                   </Col>
                 </Row>
@@ -300,4 +313,4 @@ class Event extends Component {
   }
 }
 
-export default Event;
+export default connect(mapStateToProps,mapDispatchToProps)(Event);

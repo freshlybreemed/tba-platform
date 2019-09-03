@@ -1,15 +1,31 @@
 import React, { Component } from 'react';
+import ReactQuill from 'react-quill';
+import 'quill/dist/quill.snow.css';
+import { connect } from 'react-redux'
 import { Button, CardHeader, Card, CardBody, CardFooter, FormGroup, Label, FormText, Badge,Col, Table, Container, Collapse, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
 import axios from 'axios'
+import LaddaButton, { SLIDE_LEFT } from 'react-ladda';
+import { DateRangePicker } from 'react-dates';
+import 'react-dates/lib/css/_datepicker.css';
+import './react_dates_overrides.css';
 import PlacesAutocomplete from 'react-places-autocomplete';
+const initialText = `<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>`
+
+const mapStateToProps = state => {
+  const { user, events } = state;
+  return { user, events };
+};
 class Create extends Component {
 
   constructor(props){
     super(props);
-    this.state = {
+    this.state = {      
+      expSlideLeft: false,
       ready: false,
       isOpen: false,
       uploading: false,
+      orientation: 'vertical',
+      openDirection: 'down',
       currentTicketType: '',
       currentTicketQuantity: 0,
       currentTicketName: '',
@@ -19,7 +35,7 @@ class Create extends Component {
       event: {
         title: "",
         organizerId: "",
-        description: "",
+        description: initialText,
         endDate: "",
         startDate: "",
         eventType: "",
@@ -47,7 +63,7 @@ class Create extends Component {
         },
         user: "",
         doorTime: "",
-        eventStatus: ""
+        eventStatus: "draft"
       }
     }
     this.handleChange = this.handleChange.bind(this)
@@ -55,10 +71,35 @@ class Create extends Component {
     this.processUpload = this.processUpload.bind(this)
     this.ticketCreation = this.ticketCreation.bind(this)
     this.createTicket = this.createTicket.bind(this)
+    this.autocompleteInit = this.autocompleteInit.bind(this)
     this.toggle = this.toggle.bind(this)
+    this.modules = {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['blockquote', 'code-block'],
+        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+        [{ 'direction': 'rtl' }],                         // text direction
+        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+        ['clean']                                         // remove formatting button
+      ]
+    }
 
   }
   componentDidMount () {
+    console.log(window.location.hash.split('/')[1])
+    let event = this.state.event
+    event.organizerId = this.props.user.sub
+    this.setState({event},()=>console.log(this.state.event))
+    this.autocompleteInit()
+  }
+  autocompleteInit(){
     var set = () => this.setState({ready: true})
     const script = document.createElement("script");
     script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBWqhUxBtnG59S2Lx47umesuG-NnLpMGSA&libraries=places";
@@ -66,7 +107,6 @@ class Create extends Component {
     script.onload = set 
     document.body.appendChild(script)
   }
-
   processUpload = async e => {
     console.log(e.target.files[0])
     const files = Array.from(e.target.files)
@@ -161,10 +201,12 @@ class Create extends Component {
   };
   handleSubmit(e) {
     e.preventDefault();
+    let event = this.state.event
+    event.eventStatus = 'live'
     axios('/event',{
       method: 'POST',
       data: {
-          "event": {...this.state.event}
+          event
       },
     }).then((res) => {
       console.log("RESPONSE RECEIVED: ", res);
@@ -174,12 +216,20 @@ class Create extends Component {
     })
   }
   toggle(type) {
-    if (type !== "cancel" ) {
+    if (type === "expSlideLeft") {
+      console.log(type)
+      this.setState({
+        [type]: !this.state[type],
+        progress: 0.5
+      })
+    } 
+    else if (type !== "cancel" ) {
       this.setState(state => ({ 
         isOpen: true,
         currentTicketType: type
       }),()=>console.log(this.state.currentTicketType));
-    } else {
+    }
+    else {
       this.setState(state => ({ 
         isOpen: !state.isOpen
        }),()=>console.log(this.state));
@@ -194,7 +244,7 @@ class Create extends Component {
           <Label htmlFor="text-input">Name</Label>
         </Col>
         <Col xs="12" md="9">
-          <Input type="text" id="text-input" onChange={this.handleChange} name="currentTicketName" required/>
+          <Input type="text" id="text-input" value={this.state.currentTicketName} onChange={this.handleChange} name="currentTicketName" required/>
           <FormText color="muted"></FormText>
         </Col>
       </FormGroup>
@@ -206,7 +256,7 @@ class Create extends Component {
           <Label htmlFor="text-input">Quantity</Label>
         </Col>
         <Col>
-          <Input type="text" id="text-input" onChange={this.handleChange} name="currentTicketQuantity" required/>
+          <Input type="text" id="text-input" value={this.state.currentTicketQuantity} onChange={this.handleChange} name="currentTicketQuantity" required/>
           <FormText color="muted"></FormText>
         </Col>
       </FormGroup> : '' }
@@ -220,7 +270,7 @@ class Create extends Component {
               <InputGroupAddon addonType="prepend">
                 <InputGroupText>$</InputGroupText>
               </InputGroupAddon>
-              <Input type="number" id="text-input" onChange={this.handleChange} name="currentTicketPrice"  required/>
+              <Input type="number" id="text-input" value={this.state.currentTicketPrice} onChange={this.handleChange} name="currentTicketPrice"  required/>
             </InputGroup>
           </Col>
         </FormGroup> : ''}
@@ -229,7 +279,7 @@ class Create extends Component {
           <Label htmlFor="text-input">Ticket Description</Label>
         </Col>
         <Col xs="12" md="9">
-          <Input type="text" name="currentTicketDescription" onChange={this.handleChange} id="text-input" rows="9"
+          <Input type="text" name="currentTicketDescription" value={this.state.currentTicketDescription} onChange={this.handleChange} id="text-input" rows="9"
                   placeholder="Include need-to-know information here...." required/>
         </Col>
         <Col>
@@ -250,42 +300,55 @@ class Create extends Component {
       description: state.currentTicketDescription,
       startingQuantity: parseInt(state.currentTicketQuantity), 
       currentQuantity: parseInt(state.currentTicketQuantity), 
-      price: state.currentTicketPrice, 
+      price: parseInt(state.currentTicketPrice),
       fees: state.currentTicketPrice * .16
     }
     state.event.ticketTypes = tickets
+    state.currentTicketDescription = ''
+    state.currentTicketName= ''
+    state.currentTicketPrice= ''
+    state.currentTicketType= ''
+    state.currentTicketQuantity= ''
+    
     this.setState({
       state,
       isOpen: !state.isOpen
     },()=>console.log(this.state.event.ticketTypes))
   }
   handleChange(evt) {
-    if (evt.target.name.split('.').length>1){
-      var obj = {...this.state}
-      const set = (path, value) => {
-        var schema = obj;  // a moving reference to internal objects within obj
-        var pList = path.split('.');
-        var len = pList.length;
-        for(var i = 0; i < len-1; i++) {
-            var elem = pList[i];
-            if( !schema[elem] ) schema[elem] = {}
-            schema = schema[elem];
-        }
-        schema[pList[len-1]] = value;
+    // console.log(evt.target.name)
+    const set = (path, value) => {
+      var schema = obj;  // a moving reference to internal objects within obj
+      var pList = path.split('.');
+      var len = pList.length;
+      for(var i = 0; i < len-1; i++) {
+          var elem = pList[i];
+          if( !schema[elem] ) schema[elem] = {}
+          schema = schema[elem];
       }
+      schema[pList[len-1]] = value;
+    }
+    if (typeof evt==="string"){
+      var obj = {...this.state}
+      obj.event.description = evt
+      this.setState({obj},()=> console.log(this.state));
+      return
+    }
+    if (evt.target.name.split('.').length>1){
       console.log(evt.target.name)
-      console.log(evt.target.value)
+      var obj = {...this.state}
       var ticketType = {}
       if(evt.target.name.split('.')[0] + '.' + evt.target.name.split('.')[1] === "event.ticketTypes"){
-        
       }
+      console.log(evt.target.name, evt.target.value)
       set(evt.target.name, evt.target.value)
-      // console.log(obj)
       this.setState({ ...obj },()=> console.log(this.state));
+
+    }else{
+      console.log({[evt.target.name]: evt.target.value})
+      this.setState({[evt.target.name]: evt.target.value}, () => console.log(this.state))
     }
-    else{
-    this.setState({ [evt.target.name]: evt.target.value },()=> console.log(this.state));
-    }
+    
   }
   render() {
 
@@ -296,7 +359,7 @@ class Create extends Component {
 
         <Card>
           <CardHeader>
-            <strong>Create Event</strong>
+            <strong>{window.location.hash.split('/')[1] !== 'edit'? "Create Event": "Edit Event"}</strong>
           </CardHeader>
           <CardBody>
             <Form action="" method="post" encType="multipart/form-data" className="form-horizontal">
@@ -367,6 +430,17 @@ class Create extends Component {
                   <Label htmlFor="datetime">Start Time</Label>
                 </Col>
                 <Col md="3">
+                {/* <DateRangePicker
+                  startDate={this.state.startDate}
+                  startDateId="startDate"
+                  endDate={this.state.endDate}
+                  endDateId="endDate"
+                  onDatesChange={({startDate, endDate}) => this.setState({startDate, endDate})}
+                  focusedInput={this.state.focusedInput}
+                  onFocusChange={focusedInput => this.setState({focusedInput})}
+                  orientation={this.state.orientation}
+                  openDirection={this.state.openDirection}
+            /> */}
                   <Input type="time" id="time-input" name="time-input" placeholder="time" required/>
                 </Col>
               </FormGroup>
@@ -389,8 +463,7 @@ class Create extends Component {
                   <Label htmlFor="textarea-input">Event Description</Label>
                 </Col>
                 <Col xs="12" md="9">
-                  <Input type="textarea" name="event.description" onChange={this.handleChange} id="textarea-input" rows="9"
-                          placeholder="Include need-to-know information to make it easier for people to search for your event page and buy tickets once they're there...." required/>
+                  <ReactQuill  value={this.state.event.description} name="event.description" onChange={this.handleChange} modules={this.modules} />
                 </Col>
               </FormGroup>
               <FormGroup row>
@@ -434,20 +507,17 @@ class Create extends Component {
               </FormGroup>
               <FormGroup row>
                 <Col md="3">
-                  <Label>Ticket Type</Label>
+                  <Label>Add Tickets</Label>
                 </Col>
                 <Col md="9">
                   <FormGroup check inline>
-                    <Input className="form-check-input" onClick={() => this.toggle("rsvp")} type="radio" id="inline-radio1" name="inline-radios" value="option1" />
-                    <Label className="form-check-label"  check htmlFor="inline-radio1">RSVP</Label>
+                    <Button onClick={() => this.toggle("rsvp")}>RSVP</Button>
                   </FormGroup>
                   <FormGroup check inline>
-                    <Input className="form-check-input" onClick={() => this.toggle("paid")}type="radio" id="inline-radio2" name="inline-radios" value="option2" />
-                    <Label className="form-check-label" check htmlFor="inline-radio2">Paid Ticket</Label>
+                    <Button onClick={() => this.toggle("paid")}>Paid Ticket</Button>
                   </FormGroup>
                   <FormGroup check inline>
-                    <Input className="form-check-input" onClick={() => this.toggle("donation")} type="radio" id="inline-radio3" name="inline-radios" value="option3" />
-                    <Label className="form-check-label" check htmlFor="inline-radio3">Donation</Label>
+                    <Button onClick={() => this.toggle("donation")}>Donation</Button>
                   </FormGroup>
                 </Col>
               </FormGroup>
@@ -485,9 +555,20 @@ class Create extends Component {
             </Form>
           </CardBody>
           <CardFooter>
+            <h6>slide-left</h6>
+            <LaddaButton
+              className="btn btn-info btn-ladda"
+              loading={this.state.expSlideLeft}
+              onClick={() => this.toggle('expSlideLeft')}
+              data-color="blue"
+              data-style={SLIDE_LEFT}
+            >
+            Submit!
+            </LaddaButton>
+            {/* <Button disabled class="btn btn-success btn-ladda" data-style="slide-left" onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button> */}
             {this.state.uploading? 
-            <Button disabled onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>:
-            <Button onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>}
+              <Button disabled class="btn btn-success btn-ladda" data-style="slide-left" onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>:
+              <Button onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>}
             <Button type="reset" size="sm" color="danger"><i className="fa fa-ban"></i> Reset</Button>
           </CardFooter>
         </Card>
@@ -500,4 +581,4 @@ class Create extends Component {
   }
 }
 
-export default Create;
+export default connect(mapStateToProps)(Create);

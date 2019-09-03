@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Button, CardColumns, CardHeader, Card, CardBody, CardFooter, Collapse, DropdownMenu, DropdownItem, DropdownToggle, Fade, FormGroup, FormFeedback, InputGroupButtonDropdown, Label, FormText, Badge,Col, Container, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
-import { Bar, Doughnut, Line, Pie, Polar, Radar } from 'react-chartjs-2';
+import { Button, CardHeader, Card, CardBody, CardFooter, Collapse, DropdownMenu, DropdownItem, DropdownToggle, Fade, FormGroup, FormFeedback, InputGroupButtonDropdown, Label, FormText, Badge,Col, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
 
 class Settings extends Component {
   constructor(props){

@@ -6,15 +6,13 @@ export default class Checkout extends React.Component {
   constructor(props){
     console.log(props.metadata)
     super(props)
-    this.state= {
-      eventId: props.metadata.id
-    }
   }
   onToken = (token, addresses) => {
     const metadata = this.props.metadata
     console.log(metadata)
     let meta = {
-      eventId: metadata.id
+      eventId: metadata.id,
+      updatedAt: metadata.updatedAt
     }
     for (var tix in metadata.tickets){
       meta[tix] = metadata.tickets[tix].count

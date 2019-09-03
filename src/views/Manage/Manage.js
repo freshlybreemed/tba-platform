@@ -1,32 +1,19 @@
-import React, { Component, lazy, Suspense } from 'react';
-import { Bar, Line } from 'react-chartjs-2';
-import mongo from 'mongodb';
+import React, { Component, lazy } from 'react';
+import { Line } from 'react-chartjs-2';
 
 import axios from 'axios'
 import {
-  Badge,
   Button,
-  ButtonDropdown,
-  ButtonGroup,
-  ButtonToolbar,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
-  CardTitle,
   Col,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Jumbotron,
   Progress,
   Row,
-  Table,
+  Table
 } from 'reactstrap';
 import { CustomTooltips } from '@coreui/coreui-plugin-chartjs-custom-tooltips';
 import { getStyle, hexToRgba } from '@coreui/coreui/dist/js/coreui-utilities'
-const ObjectId = mongo.ObjectId;
 
 const Widget03 = lazy(() => import('../../views/Widgets/Widget03'));
 
@@ -92,8 +79,6 @@ const cardChartOpts1 = {
     },
   }
 }
-
-
 // Card Chart 2
 const cardChartData2 = {
   labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
@@ -290,7 +275,7 @@ const socialChartOpts = {
 // sparkline charts
 const sparkLineChartData = [
   {
-    data: [35, 23, 56, 22, 97, 23, 64],
+    data: [35, 23, 56, 22, 97, 98, 99],
     label: 'New Clients',
   },
   {
@@ -469,7 +454,7 @@ class Manage extends Component {
 
     this.state = {
       dropdownOpen: false,
-      isEventFetched: true,
+      isEventFetched: false,
       radioSelected: 2,
       event: {
           "_id": "5d45347642ff74000796a2f6",
@@ -543,7 +528,7 @@ class Manage extends Component {
                 "phone": null
               },
               "captured": true,
-              "created": 1565584550,
+              "created": 1566280792,
               "currency": "usd",
               "customer": null,
               "description": null,
@@ -28193,7 +28178,7 @@ class Manage extends Component {
                 "phone": null
               },
               "captured": true,
-              "created": 1557375663,
+              "created": 1566280792,
               "currency": "usd",
               "customer": null,
               "description": null,
@@ -28305,7 +28290,7 @@ class Manage extends Component {
                 "phone": null
               },
               "captured": true,
-              "created": 1557370146,
+              "created": 1566280792,
               "currency": "usd",
               "customer": null,
               "description": null,
@@ -28408,41 +28393,33 @@ class Manage extends Component {
         .then(res => {
           console.log(res)
           event = res.data[0]
-          this.setState({event})
+          this.setState({event, isEventFetched: true})
+          this.salesData()
         })
         .catch(err=>console.log(err))
+    } else {
+      this.setState({isEventFetched:true},()=>this.salesData())
     }
-    this.salesData()
-  }
-  getBalance(){
-    const tickets = this.state.event.tickets
-    // for (let tix in tickets){
-    // const bal = String(res.data.pending[0].amount)
-    // const balance = "$"+ bal.slice(2) +"."+ bal.slice(-2)
-    // }
-    // this.setState({
-    //   balance
-    // })
   }
   salesData(){
-    // console.log('ticketsSold')
     var date = new Date().getTime()/1000
     var yesterday = date - 86400
-    var ticketsSold = 0
+    var ticketDayCount = 0
     let totalBalance = 0
     let ticketTypes = this.state.event.ticketTypes;
-    var totalTotalCount = 0
-    console.log("yesterday: "+yesterday)
+    var totalTicketCount = 0
     this.state.event.tickets.forEach((ticket)=>{
       for (let ticketType in ticket.metadata){
         if(typeof ticket.metadata.eventId !=="undefined" && ticketType !== "eventId"){
-          totalTotalCount += parseInt(ticket.metadata[ticketType])
+          totalTicketCount += parseInt(ticket.metadata[ticketType])
           totalBalance += ticketTypes[ticketType].price*  parseInt(ticket.metadata[ticketType])
+          if (ticket.created > yesterday && ticket.created < date) {
+            ticketDayCount+=  parseInt(ticket.metadata[ticketType])
+          }
         }
       }
-      if (ticket.created > yesterday && ticket.created < date) ticketsSold++
     })
-    this.setState({ticketDayCount: ticketsSold, totalTotalCount, totalBalance},()=>console.log(this.state))
+    this.setState({ticketDayCount, totalTicketCount, totalBalance},()=>console.log(this.state))
   }
   toggle() {
     this.setState({
@@ -28498,14 +28475,13 @@ class Manage extends Component {
       const event = this.state.event
       let count = 0
       for (let order in event.tickets){
-        if (count>1) break
         const person = event.tickets[order]
         const date = new Date(person.created*1000).toString()
-        console.log(event.tickets[order])
+        // console.log(event.tickets[order])
         recentOrders.push(<tr>
           <td className="text-center">
             <div>
-              <a href="#">2320</a>
+              <a href="#">{String(person.created).substring(5)}</a>
             </div>
           </td>
           <td>
@@ -28530,117 +28506,78 @@ class Manage extends Component {
           <td>
             <strong>$12.54</strong>
           </td>
+          <td>
+            <strong>$12.54</strong>
+          </td>
         </tr>
         )
         count++
+        if (count > 6) break
       }
     }
     console.log(recentOrders)
     return recentOrders;
   }
   render() {
-
+    console.log("this.state.totalTicketCount")
+    console.log(this.state.totalTicketCount)
     return (
       <div className="animated fadeIn">
-        {/* <Row>
-          <Col>
+        <h4>Traffic & Sales</h4> 
+        <Row>
+          <Col xs="12" sm="6" lg="3">
             <Card>
               <CardBody>
-                <Row>
-                  <Col sm="5">
-                    <CardTitle className="mb-0">Traffic</CardTitle>
-                    <div className="small text-muted">November 2015</div>
-                  </Col>
-                  <Col sm="7" className="d-none d-sm-inline-block">
-                    <Button color="primary" className="float-right"><i className="icon-cloud-download"></i></Button>
-                    <ButtonToolbar className="float-right" aria-label="Toolbar with button groups">
-                      <ButtonGroup className="mr-3" aria-label="First group">
-                        <Button color="outline-secondary" onClick={() => this.onRadioBtnClick(1)} active={this.state.radioSelected === 1}>Day</Button>
-                        <Button color="outline-secondary" onClick={() => this.onRadioBtnClick(2)} active={this.state.radioSelected === 2}>Month</Button>
-                        <Button color="outline-secondary" onClick={() => this.onRadioBtnClick(3)} active={this.state.radioSelected === 3}>Year</Button>
-                      </ButtonGroup>
-                    </ButtonToolbar>
-                  </Col>
-                </Row>
-                <div className="chart-wrapper" style={{ height: 300 + 'px', marginTop: 40 + 'px' }}>
-                  <Line data={mainChart} options={mainChartOpts} height={300} />
+              {/* <div className="callout callout-info"> */}
+                <small className="text-muted">Tickets Sold</small>
+                <br />
+                <strong className="h4">{this.state.totalTicketCount}</strong>
+                <div className="chart-wrapper">
+                  <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
+                </div>
+              {/* </div> */}
+              </CardBody>
+          </Card>
+            
+          </Col>
+          <Col xs="12" sm="6" lg="3">
+            <Card>
+              <CardBody>
+                <small className="text-muted">Balance </small>
+                <br />
+                <strong className="h4">${this.state.totalBalance}</strong>
+                <div className="chart-wrapper">
+                  <Line data={makeSparkLineData(0, brandInfo)} options={sparklineChartOpts} width={100} height={30} />
                 </div>
               </CardBody>
-              <CardFooter>
-                <Row className="text-center">
-                  <Col sm={12} md className="mb-sm-2 mb-0">
-                    <div className="text-muted">Visits</div>
-                    <strong>29.703 Users (40%)</strong>
-                    <Progress className="progress-xs mt-2" color="success" value="40" />
-                  </Col>
-                  <Col sm={12} md className="mb-sm-2 mb-0 d-md-down-none">
-                    <div className="text-muted">Unique</div>
-                    <strong>24.093 Users (20%)</strong>
-                    <Progress className="progress-xs mt-2" color="info" value="20" />
-                  </Col>
-                  <Col sm={12} md className="mb-sm-2 mb-0">
-                    <div className="text-muted">Pageviews</div>
-                    <strong>78.706 Views (60%)</strong>
-                    <Progress className="progress-xs mt-2" color="warning" value="60" />
-                  </Col>
-                  <Col sm={12} md className="mb-sm-2 mb-0">
-                    <div className="text-muted">New Users</div>
-                    <strong>22.123 Users (80%)</strong>
-                    <Progress className="progress-xs mt-2" color="danger" value="80" />
-                  </Col>
-                  <Col sm={12} md className="mb-sm-2 mb-0 d-md-down-none">
-                    <div className="text-muted">Bounce Rate</div>
-                    <strong>Average Rate (40.15%)</strong>
-                    <Progress className="progress-xs mt-2" color="primary" value="40" />
-                  </Col>
-                </Row>
-              </CardFooter>
             </Card>
+            
           </Col>
-        </Row> */}
-
-        {/* <Row>
-          <Col xs="6" sm="6" lg="3">
-            <Suspense fallback={this.loading()}>
-              <Widget03 dataBox={() => ({ variant: 'facebook', friends: '89k', feeds: '459' })} >
+          <Col xs="12" sm="6" lg="3">
+            <Card>
+              <CardBody>                       
+                <small className="text-muted">Pageviews</small>
+                <br />
+                <strong className="h4">78,623</strong>
                 <div className="chart-wrapper">
-                  <Line data={makeSocialBoxData(0)} options={socialChartOpts} height={90} />
+                  <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
                 </div>
-              </Widget03>
-            </Suspense>
+            </CardBody>                       
+          </Card>
           </Col>
-
-          <Col xs="6" sm="6" lg="3">
-            <Suspense fallback={this.loading()}>
-              <Widget03 dataBox={() => ({ variant: 'twitter', followers: '973k', tweets: '1.792' })} >
+          <Col xs="12" sm="6" lg="3">
+            <Card>
+              <CardBody>                       
+                <small className="text-muted">24-Hour Sales</small>
+                <br />
+                <strong className="h4">{this.state.ticketDayCount? this.state.ticketDayCount + (this.state.ticketDayCount>1? " Tickets" : " Ticket"): "0"}</strong>
                 <div className="chart-wrapper">
-                  <Line data={makeSocialBoxData(1)} options={socialChartOpts} height={90} />
+                  <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
                 </div>
-              </Widget03>
-            </Suspense>
-          </Col>
-
-          <Col xs="6" sm="6" lg="3">
-            <Suspense fallback={this.loading()}>
-              <Widget03 dataBox={() => ({ variant: 'linkedin', contacts: '500+', feeds: '292' })} >
-                <div className="chart-wrapper">
-                  <Line data={makeSocialBoxData(2)} options={socialChartOpts} height={90} />
-                </div>
-              </Widget03>
-            </Suspense>
-          </Col>
-
-          <Col xs="6" sm="6" lg="3">
-            <Suspense fallback={this.loading()}>
-              <Widget03 dataBox={() => ({ variant: 'google-plus', followers: '894', circles: '92' })} >
-                <div className="chart-wrapper">
-                  <Line data={makeSocialBoxData(3)} options={socialChartOpts} height={90} />
-                </div>
-              </Widget03>
-            </Suspense>
-          </Col>
-        </Row> */}
-
+            </CardBody>                       
+          </Card>
+        </Col>
+        </Row>
         <Row>
           <Col>
             <Card>
@@ -28649,65 +28586,8 @@ class Manage extends Component {
               </CardHeader>
               <CardBody>
                 <Row>
-                  <Col xs="12" md="6" xl="6">
-                  <h4>Traffic & Sales</h4> 
-                    <Row>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>
-                          {/* <div className="callout callout-info"> */}
-                            <small className="text-muted">Tickets Sold</small>
-                            <br />
-                            <strong className="h4">{this.state.totalTotalCount}</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(0, brandPrimary)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                          {/* </div> */}
-                          </CardBody>
-                      </Card>
-                        
-                      </Col>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>
-                            <small className="text-muted">Balance </small>
-                            <br />
-                            <strong className="h4">${this.state.totalBalance}</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(0, brandInfo)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                          </CardBody>
-                        </Card>
-                        
-                      </Col>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>                       
-                            <small className="text-muted">Pageviews</small>
-                            <br />
-                            <strong className="h4">78,623</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                        </CardBody>                       
-                      </Card>
-                      </Col>
-                      <Col sm="5">
-                        <Card>
-                          <CardBody>                       
-                            <small className="text-muted">24-Hour Sales</small>
-                            <br />
-                            <strong className="h4">{this.state.ticketDayCount? this.state.ticketDayCount + (this.state.ticketDayCount>1? " Tickets" : " Ticket"): ""}</strong>
-                            <div className="chart-wrapper">
-                              <Line data={makeSparkLineData(2, brandWarning)} options={sparklineChartOpts} width={100} height={30} />
-                            </div>
-                        </CardBody>                       
-                      </Card>
-                      </Col>
-                    </Row>
-                    </Col>
+
                     <Col> 
-                    <hr className="mt-0" />
                     <h4>Recent Orders</h4>
                       <Table hover responsive className="table-outline mb-0 d-sm-table">
                         <thead className="thead-light">
@@ -28723,151 +28603,6 @@ class Manage extends Component {
                         </thead>
                         <tbody>
                          {this.renderRecentOrders()}
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2322</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Avram Tarasios</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>1</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 10:42PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-cc-visa" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$12.54</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2323</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Quintin Ed</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>2</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 09:39PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-cc-stripe" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$25.08</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2324</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Enéas Kwadwo</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>1</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 09:32PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-paypal" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$12.54</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2325</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Agapetus Tadeáš</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>3</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 06:32PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-google-wallet" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$25.14</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2327</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Friderik Dávid</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>1</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 04:32PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-cc-amex" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$12.54</strong>
-                            </td>
-                          </tr>
                         </tbody>
                       </Table>
                       <a href="/">View More...</a>

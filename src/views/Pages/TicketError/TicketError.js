@@ -1,7 +1,5 @@
-import React, { Component, lazy } from 'react';
-import update from 'immutability-helper';
-import { Button, Card, CardBody, Container, Col,Fade, Media, ListGroup, ListGroupItem, ListGroupItemText,ListGroupItemHeading,Jumbotron, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, DropdownToggle, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
-const StripeCheckout = lazy(() => import('../../Widgets/StripeCheckout'))
+import React, { Component } from 'react';
+import { Button, Container, Col, Media, Jumbotron, Row, NavbarBrand, NavbarToggler, Navbar } from 'reactstrap';
 
 class TicketError extends Component { 
   render() {

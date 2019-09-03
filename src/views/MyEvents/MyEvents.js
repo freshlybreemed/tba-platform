@@ -1,19 +1,29 @@
 import React, { Component } from 'react';
-import { Button, ButtonDropdown, CardColumns, CardHeader, Card, CardBody, CardFooter,Dropdown,DropdownMenu, DropdownToggle, DropdownItem, DropdownItemProps, FormGroup, Label,ListGroupItem, ListGroup, FormText, Badge,Col, Container, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
-import { Bar, Doughnut, Line, Pie, Polar, Radar } from 'react-chartjs-2';
+import { Link } from 'react-router-dom';
+import { connect } from "react-redux";
+import { Button, ButtonDropdown, Card, CardBody,DropdownMenu, DropdownToggle, DropdownItem, Jumbotron,ListGroupItem, ListGroup, Col, Row } from 'reactstrap';
 import axios from 'axios';
 
-class MyEvents extends Component {
+const mapStateToProps = state => {
+  const { user, events } = state
+  return { user, events };
+};class MyEvents extends Component {
   constructor(props) {
     super(props);
 
     this.toggle = this.toggle.bind(this);
     this.renderCurrentEvents = this.renderCurrentEvents.bind(this)
+    this.renderDraftEvents = this.renderDraftEvents.bind(this)
     this.renderPastEvents = this.renderPastEvents.bind(this)
     this.getTime = this.getTime.bind(this)
     this.state = {
       dropdownOpen: new Array(19).fill(false),
-      events: [
+    }
+
+  }
+  componentDidMount(){
+    if (process.env.NODE_ENV === "development") {
+      const events= [
         {
           "_id": "5d44c4dccd8a030007dc3cb5",
           "title": "The Hav Mercy show",
@@ -162,19 +172,10 @@ class MyEvents extends Component {
           "organizerId": "123"
         }
       ]
-    };
-
-  }
-  componentDidMount(){
-    if (process.env.NODE_ENV !== "development") {
-      axios.get('/api/eventsByOrganizer/123').then(res=>{
-        console.log(res)
-        this.setState({events: res.data})
-      }).catch(err=>{
-        console.log(err)
-      })
+      this.setState(events)
     }
     this.renderCurrentEvents()
+    this.renderDraftEvents()
     this.renderPastEvents()
     // console.log(this.state.events)
   }
@@ -206,7 +207,7 @@ class MyEvents extends Component {
   }
   renderCurrentEvents(){
     let currentEvents = []
-    this.state.events.map(event=>{
+    this.props.events.map(event=>{
       console.log(event)
       if (event.eventStatus === 'live' && new Date(event.startDate).getTime() >new Date().getTime()) {
         currentEvents.push(
@@ -215,14 +216,14 @@ class MyEvents extends Component {
               <div className="small text-muted">
                   {this.getTime(event.startDate)}
                 </div> 
-              <ButtonDropdown className="float-right" isOpen={this.state.dropdownOpen[0]} toggle={() => { this.toggle(1); }}>
+              <ButtonDropdown className="float-right" isOpen={this.state.dropdownOpen[0]} toggle={() => { this.toggle(0); }}>
                 <DropdownToggle caret>
                   Manage
                 </DropdownToggle>
                 <DropdownMenu right>
-                  <DropdownItem>Manage</DropdownItem>
-                  <DropdownItem>Edit</DropdownItem>
-                  <DropdownItem>View</DropdownItem>
+                  <DropdownItem tag={Link} to={`/manage/${event._id}`}>Manage</DropdownItem>
+                  <DropdownItem tag={Link} to={`/edit/${event._id}`}>Edit</DropdownItem>
+                  <DropdownItem tag={Link} to={`/event/${event._id}`}>View</DropdownItem>
                 </DropdownMenu>
               </ButtonDropdown>
             </ListGroupItem>
@@ -232,9 +233,39 @@ class MyEvents extends Component {
     })
     return currentEvents
   }
+  renderDraftEvents(){
+    let draftEvents = []
+    this.props.events.map(event=>{
+      console.log(event)
+      if (event.eventStatus === 'draft') {
+    let draftEvents = []
+      draftEvents.push(
+          <ListGroup>
+            <ListGroupItem className="float-right" >{event.title}
+              <div className="small text-muted">
+                  {this.getTime(event.startDate)}
+                </div> 
+              <ButtonDropdown className="float-right" isOpen={this.state.dropdownOpen[1]} toggle={() => { this.toggle(1); }}>
+                <DropdownToggle caret>
+                  Manage
+                </DropdownToggle>
+                <DropdownMenu right>
+                  <DropdownItem tag={Link} to={`/manage/${event._id}`}>Manage</DropdownItem>
+                  <DropdownItem>Edit</DropdownItem>
+                  <DropdownItem>Publish</DropdownItem>
+                  <DropdownItem>View</DropdownItem>
+                </DropdownMenu>
+              </ButtonDropdown>
+            </ListGroupItem>
+          </ListGroup>
+        )
+      }
+    })
+    return draftEvents
+  }
   renderPastEvents(){
     let pastEvents = []
-    this.state.events.map(event=>{
+    this.props.events.map(event=>{
       console.log(event)
       if (event.eventStatus === 'live' && new Date(event.startDate).getTime() <new Date().getTime()) {
         pastEvents.push(
@@ -248,7 +279,7 @@ class MyEvents extends Component {
                   Manage
                 </DropdownToggle>
                 <DropdownMenu right>
-                  <DropdownItem>Manage</DropdownItem>
+                  <DropdownItem tag={Link} to={`/manage/${event._id}`}>Manage</DropdownItem>
                   <DropdownItem>Edit</DropdownItem>
                   <DropdownItem>View</DropdownItem>
                 </DropdownMenu>
@@ -261,32 +292,37 @@ class MyEvents extends Component {
     return pastEvents
   }
   render() {
+    console.log(this.props)
+    const { events, user } = this.props
+
     return (
       <div className="animated fadeIn">
       <Row>
         <Col>
-          <h5>Current Events</h5>
-          {this.renderCurrentEvents()}
-          <br />
-          <h5>Event Drafts</h5>
-          <ListGroup>
-            <ListGroupItem className="justify-content-between">Crank Comedy
-              <ButtonDropdown className="float-right" isOpen={this.state.dropdownOpen[2]} toggle={() => { this.toggle(1); }}>
-                <DropdownToggle caret>
-                  Manage
-                </DropdownToggle>
-                <DropdownMenu right>
-                  <DropdownItem>Manage</DropdownItem>
-                  <DropdownItem>Edit</DropdownItem>
-                  <DropdownItem>Publish</DropdownItem>
-                  <DropdownItem>View</DropdownItem>
-                </DropdownMenu>
-              </ButtonDropdown>
-            </ListGroupItem>
-          </ListGroup>
-          <br />
-          <h5>Past Events</h5>
+        {typeof events !== 'undefined' && events.length> 0 ?
+          <div>
+            <h5>Current Events</h5>
+            {this.renderCurrentEvents()}
+            <br />
+            <h5>Event Drafts</h5>
+            {this.renderDraftEvents()}
+            <br />
+            <h5>Past Events</h5>
             {this.renderPastEvents()}
+          </div> : 
+          <Card>
+            <CardBody>
+              <Jumbotron>
+                <h1 className="display-3">Welcome to TBA!</h1>
+                <p className="lead">A new way to connect the community with experiences</p>
+                <hr className="my-2" />
+                <p>Come join the family!</p>
+                <p className="lead">
+                  <Button href="#/create" color="primary">Create an Event</Button>
+                </p>
+              </Jumbotron>
+            </CardBody>
+          </Card>}
         </Col>
       </Row>
     </div>
@@ -295,4 +331,4 @@ class MyEvents extends Component {
   }
 }
 
-export default MyEvents;
+export default connect(mapStateToProps)(MyEvents);
