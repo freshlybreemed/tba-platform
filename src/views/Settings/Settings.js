@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, CardHeader, Card, CardBody, CardFooter, Collapse, DropdownMenu, DropdownItem, DropdownToggle, Fade, FormGroup, FormFeedback, InputGroupButtonDropdown, Label, FormText, Badge,Col, Container, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
+import { Button, CardHeader, Card, CardBody, CardFooter, Collapse, DropdownMenu, DropdownItem, DropdownToggle, Fade, FormGroup, FormFeedback, InputGroupButtonDropdown, Label, FormText, Badge,Col, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
 
 class Settings extends Component {
   constructor(props){

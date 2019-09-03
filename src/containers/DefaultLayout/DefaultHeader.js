@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { connect } from "react-redux";
 import { getUser, getEvents } from "../../redux/actions/index";
@@ -7,10 +7,9 @@ import { Badge, UncontrolledDropdown, DropdownItem, DropdownMenu, DropdownToggle
 import PropTypes from 'prop-types';
 
 import { AppAsideToggler, AppNavbarBrand, AppSidebarToggler } from '@coreui/react';
-import logo from '../../assets/img/brand/logo.svg'
+import logo from '../../assets/img/brand/freshy-hat.png'
 import sygnet from '../../assets/img/brand/sygnet.svg'
 import { useAuth0 } from "../../react-auth0-wrapper";
-import { longStackSupport } from 'q';
 import axios from 'axios';
 
 const mapStateToProps = state => {
@@ -41,7 +40,7 @@ const DefaultHeader = (props) => {
     const data = [
       {
         "_id": "5d44c4dccd8a030007dc3cb5",
-        "title": "The Hav Mercy show",
+        "title": "The Hav Mercy show 1",
         "description": "Going to be soooo much fun. Endless suya and goat and beautiful people celebrating amazing culture.\n\nFeaturing a live band and music by Seagraves. See you all soon!",
         "endDate": "2019-08-02",
         "startDate": "2019-08-02",
@@ -56230,7 +56229,7 @@ const DefaultHeader = (props) => {
           "sub": "google-oauth2|108376250228919529396",
           "updated_at": "2019-08-18T17:15:18.637Z"
         })}
-        full={{ src: logo, width: 89, height: 25, alt: 'CoreUI Logo' }}
+        full={{ src: logo, width: "auto", height: 50, alt: 'CoreUI Logo' }}
         minimized={{ src: sygnet, width: 30, height: 30, alt: 'CoreUI Logo' }}
       />
       <AppSidebarToggler className="d-md-down-none" display="lg" />

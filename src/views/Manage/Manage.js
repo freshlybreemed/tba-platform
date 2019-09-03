@@ -1,24 +1,16 @@
 import React, { Component, lazy } from 'react';
-import { Bar, Line } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 
 import axios from 'axios'
 import {
-  Badge,
   Button,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
-  CardTitle,
   Col,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Jumbotron,
   Progress,
   Row,
-  Table,
+  Table
 } from 'reactstrap';
 import { CustomTooltips } from '@coreui/coreui-plugin-chartjs-custom-tooltips';
 import { getStyle, hexToRgba } from '@coreui/coreui/dist/js/coreui-utilities'
@@ -283,7 +275,7 @@ const socialChartOpts = {
 // sparkline charts
 const sparkLineChartData = [
   {
-    data: [35, 23, 56, 22, 97, 23, 64],
+    data: [35, 23, 56, 22, 97, 98, 99],
     label: 'New Clients',
   },
   {
@@ -536,7 +528,7 @@ class Manage extends Component {
                 "phone": null
               },
               "captured": true,
-              "created": 1565584550,
+              "created": 1566280792,
               "currency": "usd",
               "customer": null,
               "description": null,
@@ -28186,7 +28178,7 @@ class Manage extends Component {
                 "phone": null
               },
               "captured": true,
-              "created": 1557375663,
+              "created": 1566280792,
               "currency": "usd",
               "customer": null,
               "description": null,
@@ -28298,7 +28290,7 @@ class Manage extends Component {
                 "phone": null
               },
               "captured": true,
-              "created": 1557370146,
+              "created": 1566280792,
               "currency": "usd",
               "customer": null,
               "description": null,
@@ -28412,7 +28404,7 @@ class Manage extends Component {
   salesData(){
     var date = new Date().getTime()/1000
     var yesterday = date - 86400
-    var ticketsSold = 0
+    var ticketDayCount = 0
     let totalBalance = 0
     let ticketTypes = this.state.event.ticketTypes;
     var totalTicketCount = 0
@@ -28421,11 +28413,13 @@ class Manage extends Component {
         if(typeof ticket.metadata.eventId !=="undefined" && ticketType !== "eventId"){
           totalTicketCount += parseInt(ticket.metadata[ticketType])
           totalBalance += ticketTypes[ticketType].price*  parseInt(ticket.metadata[ticketType])
+          if (ticket.created > yesterday && ticket.created < date) {
+            ticketDayCount+=  parseInt(ticket.metadata[ticketType])
+          }
         }
       }
-      if (ticket.created > yesterday && ticket.created < date) ticketsSold++
     })
-    this.setState({ticketDayCount: ticketsSold, totalTicketCount, totalBalance},()=>console.log(this.state))
+    this.setState({ticketDayCount, totalTicketCount, totalBalance},()=>console.log(this.state))
   }
   toggle() {
     this.setState({
@@ -28481,14 +28475,13 @@ class Manage extends Component {
       const event = this.state.event
       let count = 0
       for (let order in event.tickets){
-        if (count>1) break
         const person = event.tickets[order]
         const date = new Date(person.created*1000).toString()
-        console.log(event.tickets[order])
+        // console.log(event.tickets[order])
         recentOrders.push(<tr>
           <td className="text-center">
             <div>
-              <a href="#">2320</a>
+              <a href="#">{String(person.created).substring(5)}</a>
             </div>
           </td>
           <td>
@@ -28513,16 +28506,21 @@ class Manage extends Component {
           <td>
             <strong>$12.54</strong>
           </td>
+          <td>
+            <strong>$12.54</strong>
+          </td>
         </tr>
         )
         count++
+        if (count > 6) break
       }
     }
     console.log(recentOrders)
     return recentOrders;
   }
   render() {
-
+    console.log("this.state.totalTicketCount")
+    console.log(this.state.totalTicketCount)
     return (
       <div className="animated fadeIn">
         <h4>Traffic & Sales</h4> 
@@ -28590,7 +28588,6 @@ class Manage extends Component {
                 <Row>
 
                     <Col> 
-                    <hr className="mt-0" />
                     <h4>Recent Orders</h4>
                       <Table hover responsive className="table-outline mb-0 d-sm-table">
                         <thead className="thead-light">
@@ -28606,154 +28603,6 @@ class Manage extends Component {
                         </thead>
                         <tbody>
                          {this.renderRecentOrders()}
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2322</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Avram Tarasios</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>1</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 10:42PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-cc-visa" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$12.54</strong>
-                            </td>
-                            <td>
-                              <strong>$12.54</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2323</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Quintin Ed</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>2</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 09:39PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-cc-stripe" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$25.08</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2324</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Enéas Kwadwo</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>1</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 09:32PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-paypal" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$12.54</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2325</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Agapetus Tadeáš</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>3</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 06:32PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-google-wallet" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$25.14</strong>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center">
-                            <div>
-                            <a href="#">2327</a>
-                              </div>
-                            </td>
-                            <td>
-                              <div>Friderik Dávid</div>
-                              <div className="small text-muted">
-                              <span>freshlybreemed@gmail.com</span> 
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <div>1</div>
-                            </td>
-                            <td>
-                              <div className="clearfix">
-                              <div>
-                                  <small className="text-muted">Jun 11, 2019 - 04:32PM EST</small>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <i className="fa fa-cc-amex" style={{ fontSize: 24 + 'px' }}></i>
-                            </td>
-                            <td>
-                              <strong>$12.54</strong>
-                            </td>
-                          </tr>
                         </tbody>
                       </Table>
                       <a href="/">View More...</a>

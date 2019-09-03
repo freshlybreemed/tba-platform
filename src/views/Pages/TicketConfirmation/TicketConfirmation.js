@@ -1,8 +1,20 @@
 import React, { Component, lazy } from 'react';
-import update from 'immutability-helper';
-import { Button, Card, CardBody, Container, Col,Fade, Media, ListGroup, ListGroupItem, ListGroupItemText,ListGroupItemHeading,Jumbotron, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, DropdownToggle, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
-const StripeCheckout = lazy(() => import('../../Widgets/StripeCheckout'))
+import { Container, Col,Fade, Media, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, Jumbotron, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
+import { connect } from "react-redux";
+import { getUser, getEvents } from "../../../redux/actions/index";
 
+const mapStateToProps = state => {
+  console.log(state)
+  const { user } = state 
+  return { user };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getUser: user => dispatch(getUser(user)),
+    getEvents: events => dispatch(getEvents(events))
+  }
+}
 class TicketConfirmation extends Component {  
   constructor(props) {
   super(props);
@@ -10,32 +22,9 @@ class TicketConfirmation extends Component {
   this.state = {
     isOpen: false,
     collapse: false,
-    gaCount: 0,
-    quantity:0,
-    eventId: 342,
-    total: 0, 
-    ticketsTypes:  {
-      'GA': {
-        name: 'GA',
-        type: 'paid',
-        count: 0,
-        price: 15,
-        fees: 2.46
-      },
-      'Last Call':  {
-        name: 'Last Call',
-        type: 'paid',
-        count: 0,
-        price: 20,
-        fees: 2.65
-      }
-    },
     fadeIn: false
   };
   this.toggle = this.toggle.bind(this);
-  this.handleDecrement = this.handleDecrement.bind(this)
-  this.handleIncrement = this.handleIncrement.bind(this)
-  this.handleChange = this.handleChange.bind(this)
   this.getTotal = this.getTotal.bind(this)
 }
   getTotal(){
@@ -46,32 +35,6 @@ class TicketConfirmation extends Component {
       total = total + ticket.count* (ticket.price+ticket.fees)
     }
     this.setState({total})
-  }
-  handleIncrement(e, type) {
-    let ticketUpdate = this.state.ticketsTypes
-    ticketUpdate[type].count ++;
-    this.getTotal()
-    this.setState({ 
-      ticketsTypes: ticketUpdate,
-      quantity: this.state.quantity +1,
-      fadeIn: true
-    })
-  }
-  handleDecrement(e, type) {
-    let ticketUpdate = this.state.ticketsTypes
-    if (ticketUpdate[type].count >= 1){
-      ticketUpdate[type].count --;
-      this.getTotal()
-      this.setState({ 
-        ticketsTypes: ticketUpdate,
-        quantity: this.state.quantity -1
-      })
-    }
-  }
-  handleChange(e , another) {
-  }
-  toggle() {
-    this.setState(state => ({ collapse: !state.collapse }));
   }
   render() {
 
@@ -119,4 +82,4 @@ class TicketConfirmation extends Component {
   }
 }
 
-export default TicketConfirmation;
+export default connect(mapStateToProps, mapDispatchToProps)(TicketConfirmation);

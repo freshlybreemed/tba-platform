@@ -1,5 +1,5 @@
-import React, { Component, lazy } from 'react';
-import { Button, Container, Col, Media, Jumbotron, Row, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, Navbar } from 'reactstrap';
+import React, { Component } from 'react';
+import { Button, Container, Col, Media, Jumbotron, Row, NavbarBrand, NavbarToggler, Navbar } from 'reactstrap';
 
 class TicketError extends Component { 
   render() {

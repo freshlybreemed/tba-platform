@@ -1,8 +1,23 @@
 import React, { Component, lazy } from 'react';
 import axios from 'axios'
+import { connect } from "react-redux";
+import { getUser, getEvents } from "../../../redux/actions/index";
 import { Badge, Button, Card, Col,Fade, Media, Jumbotron, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
 const StripeCheckout = lazy(() => import('../../Widgets/StripeCheckout'))
+
+const mapStateToProps = state => {
+  console.log(state)
+  const { event } = state 
+  return { event };
+};
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getEvents: events => dispatch(getEvents(events))
+  }
+}
+
 class Event extends Component {  
+
   constructor(props) {
   super(props);
 
@@ -12,7 +27,6 @@ class Event extends Component {
     collapse: false,
     gaCount: 0,
     quantity:0,
-    eventId: 342,
     eventType: "",
     total: 0,
     event: {
@@ -89,8 +103,9 @@ class Event extends Component {
             ticketTypes[ticket] = event.ticketTypes[ticket]
             ticketTypes[ticket].count = 0
           }
+          this.props.getEvents(event);
+
           this.setState({ 
-            event,
             isEventFetched: true,
           },()=>console.log(this.state));
       })
@@ -101,8 +116,8 @@ class Event extends Component {
         ticketTypes[ticket] = event.ticketTypes[ticket]
         ticketTypes[ticket].count = 0
       }
+      this.props.getEvents(event);
       this.setState({ 
-        event,
         isEventFetched: true,
       },()=>console.log(this.state));
     }
@@ -285,7 +300,7 @@ class Event extends Component {
                     <Fade in={this.state.fadeIn && this.state.collapse && this.state.quantity > 0} tag="h5" className="mt-3">
                       {/* <Button color="success" size="lg" style={{ marginBottom: '1rem' }}>Checkout</Button> */}
                       <div>Total: ${this.state.total}</div>
-                      <StripeCheckout metadata={ !event ? {}:{tickets: event.ticketTypes, id:event._id, total: this.state.total}}/>
+                      <StripeCheckout metadata={ !this.state.event ? {}:{tickets: this.state.event.ticketTypes, id:this.state.event._id, total: this.state.total, updatedAt: this.state.event.updatedAt}}/>
                     </Fade>
                   </Col>
                 </Row>
@@ -298,4 +313,4 @@ class Event extends Component {
   }
 }
 
-export default Event;
+export default connect(mapStateToProps,mapDispatchToProps)(Event);

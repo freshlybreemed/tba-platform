@@ -17,7 +17,10 @@ const userApi = async (req, res) => {
   
     const user = await collection.findOneAndUpdate(
         { _id: data.sub },
-        {$setOnInsert: data},
+        {
+            $setOnInsert: data,
+            $set: {"updatedAt":Math.floor(new Date() / 1000)}
+        },
         {
             upsert: true,
             returnNewDocument: true
