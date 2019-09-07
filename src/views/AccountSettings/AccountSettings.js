@@ -1,17 +1,22 @@
 import React, { Component } from 'react';
 import 'quill/dist/quill.snow.css';
+import 'react-dates/lib/css/_datepicker.css';
+import './react_dates_overrides.css';
+import { getUser } from "../../redux/actions/index";
 import { TextMask, InputAdapter } from 'react-text-mask-hoc';
 import { Button, CardHeader, Card, CardBody, CardFooter, FormGroup, Label, FormText,Col, Collapse, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
 import axios from 'axios'
-import LaddaButton, { SLIDE_LEFT } from 'react-ladda';
 import { connect } from "react-redux";
-import 'react-dates/lib/css/_datepicker.css';
-import './react_dates_overrides.css';
 import PlacesAutocomplete from 'react-places-autocomplete';
 
 const mapStateToProps = state => {
   return { user: state.user };
 };
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getUser: user => dispatch(getUser(user)),
+  }
+}
 class AccountSettings extends Component {
 
   constructor(props){
@@ -50,7 +55,11 @@ class AccountSettings extends Component {
 
   }
   componentDidMount () {
-    var set = () => this.setState({ready: true})
+    let user = {...this.props.user}
+    user.location = {
+      name: ""
+    }
+    var set = () => this.setState({ready: true, user})
     const script = document.createElement("script");
     script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBWqhUxBtnG59S2Lx47umesuG-NnLpMGSA&libraries=places";
     script.async = true;
@@ -132,37 +141,39 @@ class AccountSettings extends Component {
           location.streetAddress = location.streetAddress + ' ' + location.itemRoute
         } 
         delete location.itemRoute
-        var obj = {...this.state.event}
+        var obj = {...this.state.user}
         obj.location.address = location
-        this.setState({event: obj},()=>console.log(this.state))
+        this.setState({user: obj},()=>console.log(this.state))
       });
     });
   }
   handleLocationChange = address => {
-    var event = {...this.state.event}
-    event.location.name = address
-    this.setState({ event });
+    var user = {...this.state.user}
+    user.location.name = address
+    this.setState({ user });
   };
 
   handleSelect = async (address, placeId) => {
-    var event = {...this.state.event}
-    event.location.name = address
-    this.setState({ event });
+    var user = {...this.state.user}
+    user.location.name = address
+    this.setState({ user });
     this.getDetailsForPlaceId(placeId);
   };
   handleSubmit(e) {
     e.preventDefault();
-    axios('/user',{
-      method: 'POST',
-      data: {
-          "user": {...this.state.user}
-      },
-    }).then((res) => {
-      console.log("RESPONSE RECEIVED: ", res);
-    })
-    .catch((err) => {
-      console.log("AXIOS ERROR: ", err);
-    })
+    if (process.env.NODE_ENV !== "development"){
+      axios('/user',{
+        method: 'POST',
+        data: {
+            "user": {...this.state.user}
+        },
+      }).then((res) => {
+        console.log("RESPONSE RECEIVED: ", res);
+      })
+      .catch((err) => {
+        console.log("AXIOS ERROR: ", err);
+      })
+    }
   }
   toggle(type) {
     if (type === "expSlideLeft") {
@@ -197,18 +208,11 @@ class AccountSettings extends Component {
       }
       schema[pList[len-1]] = value;
     }
-    if (typeof evt==="string"){
-      var obj = {...this.state}
-      obj.event.description = evt
-      this.setState({obj},()=> console.log(this.state));
+    let obj = {...this.state}
+    if(evt.target.name.split('.')[0] + '.' + evt.target.name.split('.')[1] === "event.ticketTypes"){
     }
-    else if (evt.target.name.split('.').length>1){
-      obj = {...this.state}
-      if(evt.target.name.split('.')[0] + '.' + evt.target.name.split('.')[1] === "event.ticketTypes"){
-      }
-      console.log(evt.target.name, evt.target.value)
-      set(evt.target.name, evt.target.value)
-    }
+    console.log(evt.target.name, evt.target.value)
+    set(evt.target.name, evt.target.value)
     this.setState({ ...obj },()=> console.log(this.state));
   }
   render() {
@@ -228,7 +232,7 @@ class AccountSettings extends Component {
                     <Label htmlFor="text-input">First Name</Label>
                   </Col>
                   <Col xs="12" md="9">
-                    <Input type="text" id="text-input" value={this.props.user.given_name} onChange={this.handleChange} name="firstName" required/>
+                    <Input type="text" id="text-input" value={this.props.user.given_name} onChange={this.handleChange} name="user.firstName" required/>
                   </Col>
                 </FormGroup>
                 <FormGroup row>
@@ -236,7 +240,7 @@ class AccountSettings extends Component {
                     <Label htmlFor="text-input">Last Name</Label>
                   </Col>
                   <Col xs="12" md="9">
-                    <Input type="text" id="text-input" value={this.props.user.family_name} onChange={this.handleChange} name="lastName" required/>
+                    <Input type="text" id="text-input" value={this.props.user.family_name} onChange={this.handleChange} name="user.lastName" required/>
                   </Col>
                 </FormGroup>
                 <FormGroup row>
@@ -244,7 +248,7 @@ class AccountSettings extends Component {
                     <Label htmlFor="text-input">Organizer Name</Label>
                   </Col>
                   <Col xs="12" md="9">
-                    <Input type="text" id="text-input" onChange={this.handleChange} name="organizerName" required/>
+                    <Input type="text" id="text-input" onChange={this.handleChange} name="user.organizerName" required/>
                   </Col>
                 </FormGroup>
                 <FormGroup>
@@ -257,7 +261,10 @@ class AccountSettings extends Component {
                       mask={['(', /[1-9]/, /\d/, /\d/, ')', ' ', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                       Component={InputAdapter}
                       className="form-control"
+                      name="user.phoneNumber"
+                      onChange={this.handleChange}
                     />
+
                   </InputGroup>
                   <FormText color="muted">
                     ex. (999) 999-9999
@@ -322,6 +329,8 @@ class AccountSettings extends Component {
                         mask={[/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
                         Component={InputAdapter}
                         className="form-control"
+                        name="user.dateOfBirth"
+                        onChange={this.handleChange}
                       />
                     </InputGroup>
                   </Col>
@@ -341,14 +350,6 @@ class AccountSettings extends Component {
             </CardBody>
             <CardFooter>
               <h6>slide-left</h6>
-              <LaddaButton
-                className="btn btn-info btn-ladda"
-                loading={this.state.expSlideLeft}
-                onClick={() => this.toggle('expSlideLeft')}
-                data-color="blue"
-                data-style={SLIDE_LEFT}>
-                Submit!
-              </LaddaButton>
               {/* <Button disabled class="btn btn-success btn-ladda" data-style="slide-left" onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button> */}
               {this.state.uploading? 
                 <Button disabled class="btn btn-success btn-ladda" data-style="slide-left" onClick={this.handleSubmit} type="submit" size="sm" color="primary"><i className="fa fa-dot-circle-o"></i> Submit</Button>:
@@ -365,4 +366,4 @@ class AccountSettings extends Component {
   }
 }
 
-export default connect(mapStateToProps)(AccountSettings);
+export default connect(mapStateToProps, mapDispatchToProps)(AccountSettings);

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from "react-redux";
-import { Button, ButtonDropdown, Card, CardBody,DropdownMenu, DropdownToggle, DropdownItem, Jumbotron,ListGroupItem, ListGroup, Col, Row } from 'reactstrap';
+import { Button, Table, Progress, ButtonDropdown, Card, CardBody,DropdownMenu, DropdownToggle, DropdownItem, Jumbotron,ListGroupItem, ListGroup, Col, Row } from 'reactstrap';
 import axios from 'axios';
 
 const mapStateToProps = state => {
@@ -12,10 +12,9 @@ const mapStateToProps = state => {
     super(props);
 
     this.toggle = this.toggle.bind(this);
-    this.renderCurrentEvents = this.renderCurrentEvents.bind(this)
-    this.renderDraftEvents = this.renderDraftEvents.bind(this)
-    this.renderPastEvents = this.renderPastEvents.bind(this)
+    this.renderEvents = this.renderEvents.bind(this)
     this.getTime = this.getTime.bind(this)
+    this.getPercentage = this.getPercentage.bind(this)
     this.state = {
       dropdownOpen: new Array(19).fill(false),
     }
@@ -174,10 +173,7 @@ const mapStateToProps = state => {
       ]
       this.setState(events)
     }
-    this.renderCurrentEvents()
-    this.renderDraftEvents()
-    this.renderPastEvents()
-    // console.log(this.state.events)
+    this.renderEvents()
   }
   toggle(i) {
     const newArray = this.state.dropdownOpen.map((element, index) => { return (index === i ? !element : false); });
@@ -205,110 +201,144 @@ const mapStateToProps = state => {
     return day + " " + month + " "+ date+ " ";
 
   }
-  renderCurrentEvents(){
-    let currentEvents = []
-    this.props.events.map(event=>{
-      console.log(event)
-      if (event.eventStatus === 'live' && new Date(event.startDate).getTime() >new Date().getTime()) {
-        currentEvents.push(
-          <ListGroup>
-            <ListGroupItem className="float-right" >{event.title}
-              <div className="small text-muted">
-                  {this.getTime(event.startDate)}
-                </div> 
-              <ButtonDropdown className="float-right" isOpen={this.state.dropdownOpen[0]} toggle={() => { this.toggle(0); }}>
-                <DropdownToggle caret>
-                  Manage
-                </DropdownToggle>
-                <DropdownMenu right>
-                  <DropdownItem tag={Link} to={`/manage/${event._id}`}>Manage</DropdownItem>
-                  <DropdownItem tag={Link} to={`/edit/${event._id}`}>Edit</DropdownItem>
-                  <DropdownItem tag={Link} to={`/event/${event._id}`}>View</DropdownItem>
-                </DropdownMenu>
-              </ButtonDropdown>
-            </ListGroupItem>
-          </ListGroup>
-        )
+
+  getPercentage(ticket){
+    let total = 0
+    let sold = 0
+    for (var ticketType in ticket.ticketTypes){
+      // console.log(ticket.ticketTypes[ticketType])
+      // if (ticket.ticketTypes[ticketType] ==='eventId' || ticket.ticketTypes[ticketType] === '') continue
+      if(parseInt(ticket.ticketTypes[ticketType].currentQuantity) === 0){
+        sold+=parseInt(ticket.ticketTypes[ticketType].startingQuantity)
       }
-    })
-    return currentEvents
+      else{
+        sold+=parseInt(ticket.ticketTypes[ticketType].startingQuantity)-parseInt(ticket.ticketTypes[ticketType].currentQuantity)
+      }
+      total+=parseInt(ticket.ticketTypes[ticketType].startingQuantity)
+    
+    }
+    console.log("sold"+sold+ " total"+total)
+    return parseInt((sold/total) *100);
   }
-  renderDraftEvents(){
-    let draftEvents = []
+  renderEvents(type){
+    let events = []
     this.props.events.map(event=>{
-      console.log(event)
-      if (event.eventStatus === 'draft') {
-    let draftEvents = []
-      draftEvents.push(
-          <ListGroup>
-            <ListGroupItem className="float-right" >{event.title}
-              <div className="small text-muted">
-                  {this.getTime(event.startDate)}
-                </div> 
-              <ButtonDropdown className="float-right" isOpen={this.state.dropdownOpen[1]} toggle={() => { this.toggle(1); }}>
-                <DropdownToggle caret>
-                  Manage
-                </DropdownToggle>
-                <DropdownMenu right>
-                  <DropdownItem tag={Link} to={`/manage/${event._id}`}>Manage</DropdownItem>
-                  <DropdownItem>Edit</DropdownItem>
-                  <DropdownItem>Publish</DropdownItem>
-                  <DropdownItem>View</DropdownItem>
-                </DropdownMenu>
-              </ButtonDropdown>
-            </ListGroupItem>
-          </ListGroup>
+      // console.log(event)
+      let condition = false
+      if (type === 'current')
+        condition = new Date(event.startDate).getTime() >new Date().getTime()
+        if (type === 'draft')
+        condition = type === event.eventStatus
+        if (type === 'past')
+        condition = new Date(event.startDate).getTime() <new Date().getTime()
+
+      if (condition) {
+        events.push(
+        <tr>
+          <td className="text-center">
+            {event.title}
+            <div className="small text-muted">
+              {this.getTime(event.startDate)}
+            </div>   
+          </td>
+          <td>
+          {type !== "draft"?
+            <div>
+            <div className="clearfix">
+              <div className="float-center">
+                <strong>{`${this.getPercentage(event)}%`}</strong>
+              </div>
+            </div>
+            <Progress className="progress-xs" color="info" value={`${this.getPercentage(event)}`} />
+            </div>
+          :''}
+          </td>
+          <td className="text-center">
+          <Link class="btn btn-success" to={`/edit/${event._id}`}>
+            <i class="fa fa-edit"></i>
+          </Link>
+          <Link class="btn btn-info" to={`/manage/${event._id}`}>
+            <i class="fa fa-wrench"></i>
+          </Link>
+          <Link class="btn btn-primary" to={`/event/${event._id}`}>
+            <i class="fa fa-eye"></i>
+          </Link>
+          </td>
+        </tr>
         )
       }
     })
-    return draftEvents
-  }
-  renderPastEvents(){
-    let pastEvents = []
-    this.props.events.map(event=>{
-      console.log(event)
-      if (event.eventStatus === 'live' && new Date(event.startDate).getTime() <new Date().getTime()) {
-        pastEvents.push(
-          <ListGroup>
-            <ListGroupItem className="float-right" >{event.title}
-              <div className="small text-muted">
-                  {this.getTime(event.startDate)}
-                </div> 
-              <ButtonDropdown className="float-right" isOpen={this.state.dropdownOpen[1]} toggle={() => { this.toggle(1); }}>
-                <DropdownToggle caret>
-                  Manage
-                </DropdownToggle>
-                <DropdownMenu right>
-                  <DropdownItem tag={Link} to={`/manage/${event._id}`}>Manage</DropdownItem>
-                  <DropdownItem>Edit</DropdownItem>
-                  <DropdownItem>View</DropdownItem>
-                </DropdownMenu>
-              </ButtonDropdown>
-            </ListGroupItem>
-          </ListGroup>
-        )
-      }
-    })
-    return pastEvents
+    return events
   }
   render() {
     console.log(this.props)
     const { events, user } = this.props
-
     return (
       <div className="animated fadeIn">
       <Row>
         <Col>
         {typeof events !== 'undefined' && events.length> 0 ?
-          <div>
+        <div>
             <h5>Current Events</h5>
-            {this.renderCurrentEvents()}
+            <Card>
+              <Table hover responsive className="table-outline mb-0 d-sm-table">
+                <thead className="thead-light">
+                  <tr>
+                    <th className="text-center">Order #</th>
+                    {/* <th>Name</th>
+                    <th className="text-center">Quantity</th>
+                    <th>Date</th>
+                    <th className="text-center">Payment Method</th> */}
+                    <th >Sold</th> 
+                    <th className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.renderEvents("current")}
+                </tbody>
+              </Table>
+            </Card>
+
             <br />
             <h5>Event Drafts</h5>
-            {this.renderDraftEvents()}
+            <Card>
+              <Table hover responsive className="table-outline mb-0 d-sm-table">
+                <thead className="thead-light">
+                  <tr>
+                    <th className="text-center">Order #</th>
+                    {/* <th>Name</th>
+                    <th className="text-center">Quantity</th>
+                    <th>Date</th>
+                    <th className="text-center">Payment Method</th> */}
+                    <th></th> 
+                    <th className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.renderEvents("draft")}
+                </tbody>
+              </Table>
+            </Card>
             <br />
             <h5>Past Events</h5>
-            {this.renderPastEvents()}
+            <Card>
+              <Table hover responsive className="table-outline mb-0 d-sm-table">
+                <thead className="thead-light">
+                  <tr>
+                    <th className="text-center">Order #</th>
+                    {/* <th>Name</th>
+                    <th className="text-center">Quantity</th>
+                    <th>Date</th>
+                    <th className="text-center">Payment Method</th> */}
+                    <th>Sold</th> 
+                    <th className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.renderEvents("past")}
+                </tbody>
+              </Table>
+            </Card>
           </div> : 
           <Card>
             <CardBody>
@@ -323,6 +353,7 @@ const mapStateToProps = state => {
               </Jumbotron>
             </CardBody>
           </Card>}
+  
         </Col>
       </Row>
     </div>

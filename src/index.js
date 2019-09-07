@@ -16,12 +16,7 @@ import * as serviceWorker from './serviceWorker';
 
 
 window.store = store;
-// console.log(window.store.getState())
-store.subscribe(() => {
-  console.log('Look ma, Redux!!')
-  console.log(window.store.getState())
-})
-// window.store.dispatch( addUser({ title: 'React Redux Tutorial for Beginners', id: 1 }) )
+
 // A function that routes the user to the right place
 // after login
 const onRedirectCallback = appState => {
@@ -42,7 +37,6 @@ ReactDOM.render(
       redirect_uri={window.location.origin}
       onRedirectCallback={onRedirectCallback}
       audience={"https://tbaevents.auth0.com/api/v2/"}
-      prompt="none"
     >
       <App />
     </Auth0Provider>

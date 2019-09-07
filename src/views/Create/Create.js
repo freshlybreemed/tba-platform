@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'quill/dist/quill.snow.css';
 import { connect } from 'react-redux'
-import { Button, CardHeader, Card, CardBody, CardFooter, FormGroup, Label, FormText, Badge,Col, Table, Container, Collapse, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row } from 'reactstrap';
+import { Button, CardHeader, Card, CardBody, CardFooter, FormGroup, Label, FormText,Col, Collapse, Form, Input, InputGroup, InputGroupAddon, InputGroupText, Row, Table } from 'reactstrap';
 import axios from 'axios'
 import LaddaButton, { SLIDE_LEFT } from 'react-ladda';
 import { DateRangePicker } from 'react-dates';
@@ -61,6 +62,7 @@ class Create extends Component {
         tags: "",
         ticketTypes: {
         },
+        updatedAt: "",
         user: "",
         doorTime: "",
         eventStatus: "draft"
@@ -72,6 +74,7 @@ class Create extends Component {
     this.ticketCreation = this.ticketCreation.bind(this)
     this.createTicket = this.createTicket.bind(this)
     this.autocompleteInit = this.autocompleteInit.bind(this)
+    this.renderTickets = this.renderTickets.bind(this)
     this.toggle = this.toggle.bind(this)
     this.modules = {
       toolbar: [
@@ -94,9 +97,16 @@ class Create extends Component {
   }
   componentDidMount () {
     console.log(window.location.hash.split('/')[1])
-    let event = this.state.event
-    event.organizerId = this.props.user.sub
-    this.setState({event},()=>console.log(this.state.event))
+    if (window.location.hash.split('/')[1] === 'edit'){
+      const id = window.location.hash.split('/')[2]
+      let event = this.props.events.filter(event=> event._id === id)[0]
+      this.setState({event},()=>console.log(this.state.event))
+    }
+    else{
+      let event = this.state.event
+      event.organizerId = this.props.user.sub
+      this.setState({event},()=>console.log(this.state.event))
+    }
     this.autocompleteInit()
   }
   autocompleteInit(){
@@ -203,6 +213,7 @@ class Create extends Component {
     e.preventDefault();
     let event = this.state.event
     event.eventStatus = 'live'
+    event.updatedAt = new Date()
     axios('/event',{
       method: 'POST',
       data: {
@@ -339,7 +350,11 @@ class Create extends Component {
       var obj = {...this.state}
       var ticketType = {}
       if(evt.target.name.split('.')[0] + '.' + evt.target.name.split('.')[1] === "event.ticketTypes"){
+        
+        console.log(evt.target.name.split('.'), evt.target.value)
+        // set(evt.target.name, evt.target.value)
       }
+      set(evt.target.name, evt.target.value)
       console.log(evt.target.name, evt.target.value)
       set(evt.target.name, evt.target.value)
       this.setState({ ...obj },()=> console.log(this.state));
@@ -349,6 +364,39 @@ class Create extends Component {
       this.setState({[evt.target.name]: evt.target.value}, () => console.log(this.state))
     }
     
+  }
+  renderTickets(){
+    const tickets = []
+    for (var ticket in this.state.event.ticketTypes){
+      const ticketInfo = this.state.event.ticketTypes[ticket]
+      tickets.push(<tr>
+        <td className="text-center">
+          <Input type="text" id="text-input" onChange={this.handleChange} value={ticketInfo.name}name={`event.ticketTypes.${ticket}`}required/>
+        </td>
+        <td>
+          <div className="clearfix">
+            <div className="float-center">
+            <Input type="text" id="text-input" onChange={this.handleChange} value={typeof this.state.event.ticketTypes.GA !== 'undefined' ? this.state.event.ticketTypes["GA"].price: "idk" }name={`event.ticketTypes.${ticket}`}
+             required/>
+            </div>
+          </div>
+        </td>
+        <td className="text-center">
+          {ticketInfo.price === 0? "Free": `$${ticketInfo.price}`}
+          </td>
+          <td className="text-center">
+          <Link class="btn btn-success">Edit
+            {/* <i class="fa fa-edit"></i> */}
+          </Link>
+          <Link class="btn btn-danger">
+            <i class="fa fa-trash"></i>
+          </Link>
+        </td>
+      </tr>
+      )
+    }
+    return tickets
+  
   }
   render() {
 
@@ -368,7 +416,7 @@ class Create extends Component {
                   <Label htmlFor="text-input">Event Title</Label>
                 </Col>
                 <Col xs="12" md="9">
-                  <Input type="text" id="text-input" onChange={this.handleChange} name="event.title" required/>
+                  <Input type="text" id="text-input" onChange={this.handleChange} value={this.state.event.title }name="event.title" required/>
                   <FormText color="muted">Give it a short distinct name</FormText>
                 </Col>
               </FormGroup>
@@ -424,23 +472,12 @@ class Create extends Component {
                   <Label htmlFor="datetime">Start Date </Label>
                 </Col>
                 <Col md="3">
-                  <Input type="date" id="date-input" name="event.startDate" onChange={this.handleChange} placeholder="time" required/>
+                  <Input type="date" id="date-input" name="event.startDate" value={this.state.event.startDate } onChange={this.handleChange} placeholder="time" required/>
                 </Col>
                 <Col md="3">
                   <Label htmlFor="datetime">Start Time</Label>
                 </Col>
                 <Col md="3">
-                {/* <DateRangePicker
-                  startDate={this.state.startDate}
-                  startDateId="startDate"
-                  endDate={this.state.endDate}
-                  endDateId="endDate"
-                  onDatesChange={({startDate, endDate}) => this.setState({startDate, endDate})}
-                  focusedInput={this.state.focusedInput}
-                  onFocusChange={focusedInput => this.setState({focusedInput})}
-                  orientation={this.state.orientation}
-                  openDirection={this.state.openDirection}
-            /> */}
                   <Input type="time" id="time-input" name="time-input" placeholder="time" required/>
                 </Col>
               </FormGroup>
@@ -449,7 +486,7 @@ class Create extends Component {
                   <Label htmlFor="datetime">End Date</Label>
                 </Col>
                 <Col md="3">
-                  <Input type="date" id="date-input" name="event.endDate" onChange={this.handleChange} placeholder="date" required/>
+                  <Input type="date" id="date-input" name="event.endDate" value={this.state.event.endDate } onChange={this.handleChange} placeholder="date" required/>
                 </Col>
                 <Col md="3">
                   <Label htmlFor="datetime">End Time</Label>
@@ -471,7 +508,7 @@ class Create extends Component {
                   <Label htmlFor="text-input">Event Organizer</Label>
                 </Col>
                 <Col>
-                  <Input type="text" id="text-input" onChange={this.handleChange} name="event.organizer" required/>
+                  <Input type="text" id="text-input" value={this.state.event.organizer } onChange={this.handleChange} name="event.organizer" required/>
                   <FormText color="muted"></FormText>
                 </Col>
               </FormGroup>
@@ -480,7 +517,7 @@ class Create extends Component {
                   <Label htmlFor="selectSm">Event Type</Label>
                 </Col>
                 <Col xs="12" md="9">
-                  <Input type="select" name="event.eventType" onChange={this.handleChange} id="Select">
+                  <Input type="select" name="event.eventType" value={this.state.event.eventType } onChange={this.handleChange} id="Select">
                     <option value="" selected="selected">Select the type of event</option>
                     <option value="19">Appearance or Signing</option>
                     <option value="17">Attraction</option>
@@ -510,17 +547,36 @@ class Create extends Component {
                   <Label>Add Tickets</Label>
                 </Col>
                 <Col md="9">
-                  <FormGroup check inline>
-                    <Button onClick={() => this.toggle("rsvp")}>RSVP</Button>
-                  </FormGroup>
-                  <FormGroup check inline>
-                    <Button onClick={() => this.toggle("paid")}>Paid Ticket</Button>
-                  </FormGroup>
-                  <FormGroup check inline>
-                    <Button onClick={() => this.toggle("donation")}>Donation</Button>
-                  </FormGroup>
+                  <Table hover responsive className="table-outline mb-0 d-sm-table">
+                  <thead className="thead-light">
+                    <tr>
+                      <th className="text-center">Ticket Name</th>
+                      {/* <th>Name</th>
+                      <th className="text-center">Quantity</th>
+                      <th>Date</th>*/}
+                      <th >Quantity available</th> 
+                      <th className="text-center">Price</th> 
+                      <th className="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.renderTickets()}
+                  </tbody>
+                </Table>
                 </Col>
               </FormGroup>
+                  <FormGroup row>
+                  <Col md="3">
+                      </Col>
+                      <Col xs="12" md="9">
+
+                    <Button onClick={() => this.toggle("rsvp")}>+ RSVP</Button>
+                    <Button onClick={() => this.toggle("paid")}>+ Paid Ticket</Button>
+                    <Button onClick={() => this.toggle("donation")}>+ Donation</Button>
+                  </Col>
+                  </FormGroup>
+                
+                
               <Collapse isOpen={this.state.isOpen}>
                 <h4>Create Ticket</h4>
                   {this.ticketCreation()}

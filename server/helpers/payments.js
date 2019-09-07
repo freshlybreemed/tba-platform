@@ -53,7 +53,7 @@ const stripeChargeCallback = (res, metadata) => async (err, charge) => {
       charges.push(customer)
       console.log(customer.created)
     })
-    await collection.findOneAndUpdate({_id: ObjectId(metadata.eventId)},{$inc:obj, $push: {"tickets": { $each: charges}}, $set: {"updatedAt": parseInt(new Date() /1000)}},{returnNewDocument:true})
+    await collection.findOneAndUpdate({_id: ObjectId(metadata.eventId)},{$inc:obj, $push: {"tickets": { $each: charges, $position: 0}}, $set: {"updatedAt": parseInt(new Date() /1000)}},{returnNewDocument:true})
     redirect(res, 200, `/event/${metadata.eventId}/confirmation`)
   }
 };

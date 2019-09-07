@@ -15,7 +15,7 @@ export default class Checkout extends React.Component {
       updatedAt: metadata.updatedAt
     }
     for (var tix in metadata.tickets){
-      meta[tix] = metadata.tickets[tix].count
+      meta[tix] = parseInt(metadata.tickets[tix].count)
     }
     const body = {
         amount: this.props.metadata.total*100,
@@ -23,18 +23,23 @@ export default class Checkout extends React.Component {
         metadata: meta
     }
     console.log(body)
-    axios.post('/payments', body).then(response => {
-        window.location = '#'+response.headers.location
-        // window.location = '/confirmation?email='+response.data.token.email
-        console.log(response)
-    }).catch(error =>{
-        console.log("Payment Error: ", error);
-        alert("There was an issue with your payment. Please try again later")
-    })
+    if (process.env.NODE_ENV !== "development") {
+      axios.post('/payments', body).then(response => {
+          window.location = '#'+response.headers.location
+          // window.location = '/confirmation?email='+response.data.token.email
+          console.log(response)
+      }).catch(error =>{
+          console.log("Payment Error: ", error);
+          alert("There was an issue with your payment. Please try again later")
+      })
+    } else {
+      let id =window.location.href.split('/')[window.location.href.split('/').length-1]
+      window.location = `#/event/${id}/confirmation`
+
+    }
   };
 
   render() {
-    console.log(this.state)
     return (
       <StripeCheckout
         stripeKey={process.env.REACT_APP_STRIPE_CLIENT_DEV}

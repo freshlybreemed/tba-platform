@@ -1,20 +1,14 @@
-import React, { Component, lazy } from 'react';
-import { Container, Col,Fade, Media, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, DropdownMenu, Jumbotron, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
+import React, { Component } from 'react';
+import { Container, Col, Media, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, Jumbotron, Navbar } from 'reactstrap';
 import { connect } from "react-redux";
 import { getUser, getEvents } from "../../../redux/actions/index";
 
 const mapStateToProps = state => {
   console.log(state)
-  const { user } = state 
-  return { user };
+  const { user, event } = state 
+  return { user, event };
 };
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    getUser: user => dispatch(getUser(user)),
-    getEvents: events => dispatch(getEvents(events))
-  }
-}
 class TicketConfirmation extends Component {  
   constructor(props) {
   super(props);
@@ -24,20 +18,10 @@ class TicketConfirmation extends Component {
     collapse: false,
     fadeIn: false
   };
-  this.toggle = this.toggle.bind(this);
-  this.getTotal = this.getTotal.bind(this)
 }
-  getTotal(){
-    let total = 0;
-    for (var ticket in this.state.ticketsTypes){
-      ticket = this.state.ticketsTypes[ticket]
-      console.log(ticket)
-      total = total + ticket.count* (ticket.price+ticket.fees)
-    }
-    this.setState({total})
-  }
   render() {
-
+    console.log(this.props)
+    const event = this.props.event;
     return (
       <div>
       <Navbar color="light" light expand="md">
@@ -59,7 +43,7 @@ class TicketConfirmation extends Component {
         <Jumbotron>
           <Media width="100%" src="https://chickenandmumbosauce.com/static/img/930-recap/IMG_8163.jpg"/>
           <br />
-          <h1>Chicken & Mumbo Sauce</h1> 
+          <h1>{typeof event !== 'undefined' ?event.title: ''}</h1> 
             <br />
             <p className="lead"> Thank you for signing up for Chicken & Mumbo Sauce. Please check your email for confirmation. </p>
           <Row>
@@ -82,4 +66,4 @@ class TicketConfirmation extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(TicketConfirmation);
+export default connect(mapStateToProps)(TicketConfirmation);

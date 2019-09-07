@@ -1,18 +1,17 @@
 import React, { Component, lazy } from 'react';
 import axios from 'axios'
 import { connect } from "react-redux";
-import { getUser, getEvents } from "../../../redux/actions/index";
+import { getUser, getEvent } from "../../../redux/actions/index";
 import { Badge, Button, Card, Col,Fade, Media, Jumbotron, Row, Nav, NavItem, NavbarBrand, Collapse, NavLink, NavbarToggler, Navbar, DropdownItem, Table, UncontrolledDropdown } from 'reactstrap';
 const StripeCheckout = lazy(() => import('../../Widgets/StripeCheckout'))
 
 const mapStateToProps = state => {
-  console.log(state)
-  const { event } = state 
-  return { event };
+  const { event, events } = state 
+  return { event, events };
 };
 const mapDispatchToProps = (dispatch) => {
   return {
-    getEvents: events => dispatch(getEvents(events))
+    getEvent: events => dispatch(getEvent(events))
   }
 }
 
@@ -29,56 +28,6 @@ class Event extends Component {
     quantity:0,
     eventType: "",
     total: 0,
-    event: {
-      "_id" : "5d44c4dccd8a030007dc3cb5",
-      "title" : "The Hav Mercy show",
-      "description" : "<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>",
-      "endDate" : "2019-08-02",
-      "startDate" : "2019-08-02",
-      "eventType" : "17",
-      "image" : {
-        "cdnUri" : "http://res.cloudinary.com/dzsf703vh/image/upload/v1564787834/zrtj1pjky7lnzta1h1l6.jpg",
-        "files" : [
-          ""
-        ]
-      },
-      "location" : {
-        "name" : "Cloak & Dagger, U Street Northwest, Washington, DC, USA",
-        "address" : {
-          "streetAddress" : "1359 U St NW",
-          "city" : "Washington",
-          "state" : "DC",
-          "postalCode" : "20009",
-          "country" : "US"
-        }
-      },
-      "organizer" : "Freshly Breemed",
-      "refundable" : true,
-      "tags" : "",
-      "ticketTypes" : {
-        "GA" : {
-          "name" : "GA",
-          "type" : "paid",
-          "description": "One (1) Drink Ticket",
-          "price" : 15,
-          "fees" : 2.45,
-          "currentQuantity" : -114,
-          "startingQuantity" : 20
-        },
-        "RSVP" : {
-          "name" : "RSVP",
-          "type" : "rsvp",
-          "description": "Test",
-          "currentQuantity" : 3,
-          "startingQuantity" : 20,
-          "price" : 0,
-          "fees" : 0
-        }
-      },
-      "user" : "",
-      "doorTime" : "",
-      "eventStatus" : ""
-    },
     fadeIn: false
   };
   this.toggle = this.toggle.bind(this);
@@ -88,35 +37,85 @@ class Event extends Component {
   this.getTotal = this.getTotal.bind(this)
   this.getTime = this.getTime.bind(this)
 }
+
   componentDidMount() {
     let event;
-    // console.log(process.env)
     let id =window.location.href.split('/')[window.location.href.split('/').length-1]
     if (process.env.NODE_ENV !== "development") {
-      // axios.get(`/api/event?id=${id}`)
       axios.get(`/api/event/${id}`)
         .then(res => {
-          console.log(res)
           event = res.data[0];
           let ticketTypes = {}
           for (let ticket in event.ticketTypes){
             ticketTypes[ticket] = event.ticketTypes[ticket]
             ticketTypes[ticket].count = 0
           }
-          this.props.getEvents(event);
-
+          this.props.getEvent(event);
           this.setState({ 
             isEventFetched: true,
           },()=>console.log(this.state));
       })
     } else {
-      event = this.state.event
+      const id = window.location.hash.split('/')[2]
+      let event = this.props.events.filter(event=> event._id === id)[0]
+      if(!event)
+      event = {
+        "_id" : "5d44c4dccd8a030007dc3cb5",
+        "title" : "The Hav Mercy show",
+        "description" : "<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>",
+        "endDate" : "2019-08-02",
+        "startDate" : "2019-08-02",
+        "eventType" : "17",
+        "image" : {
+          "cdnUri" : "http://res.cloudinary.com/dzsf703vh/image/upload/v1564787834/zrtj1pjky7lnzta1h1l6.jpg",
+          "files" : [
+            ""
+          ]
+        },
+        "location" : {
+          "name" : "Cloak & Dagger, U Street Northwest, Washington, DC, USA",
+          "address" : {
+            "streetAddress" : "1359 U St NW",
+            "city" : "Washington",
+            "state" : "DC",
+            "postalCode" : "20009",
+            "country" : "US"
+          }
+        },
+        "organizer" : "Freshly Breemed",
+        "refundable" : true,
+        "tags" : "",
+        "ticketTypes" : {
+          "GA" : {
+            "name" : "GA",
+            "type" : "paid",
+            "description": "One (1) Drink Ticket",
+            "price" : 15,
+            "fees" : 2.45,
+            "currentQuantity" : -114,
+            "startingQuantity" : 20
+          },
+          "RSVP" : {
+            "name" : "RSVP",
+            "type" : "rsvp",
+            "description": "Test",
+            "currentQuantity" : 3,
+            "startingQuantity" : 20,
+            "price" : 0,
+            "fees" : 0
+          }
+        },
+        "user" : "",
+        "doorTime" : "",
+        "eventStatus" : ""
+      }
+      this.setState({event},()=>console.log(this.state.event))
       let ticketTypes = {}
       for (let ticket in event.ticketTypes){
         ticketTypes[ticket] = event.ticketTypes[ticket]
         ticketTypes[ticket].count = 0
       }
-      this.props.getEvents(event);
+      this.props.getEvent(event)
       this.setState({ 
         isEventFetched: true,
       },()=>console.log(this.state));
@@ -126,17 +125,16 @@ class Event extends Component {
 
   getTotal(){
     let total = 0;
-    for (var ticket in this.state.event.ticketTypes){
+    for (var ticket in this.props.event.ticketTypes){
       console.log(ticket)
-      console.log(this.state.event.ticketTypes)
-      let tix  = this.state.event.ticketTypes[ticket]
-      // console.log(total + tix.count* (tix.price+tix.fees))
+      console.log(this.props.event.ticketTypes)
+      let tix  = this.props.event.ticketTypes[ticket]
       total = parseFloat(total + tix.count* (tix.price+tix.fees)).toFixed(2)
     }
     this.setState({total})
   }
   handleIncrement(e, type) { 
-    let event = this.state.event
+    let event = this.props.event
     let min = 10>event.ticketTypes[type].currentQuantity? event.ticketTypes[type].currentQuantity:10
     if (event.ticketTypes[type].count < min){
       event.ticketTypes[type].count++;
@@ -151,7 +149,7 @@ class Event extends Component {
     }
   }
   handleDecrement(e, type) {
-    let event = this.state.event
+    let event = this.props.event
     let ticketUpdate = event.ticketTypes
     if (ticketUpdate[type].count >= 1){
       ticketUpdate[type].count --;
@@ -201,13 +199,14 @@ class Event extends Component {
     }
   }
   render() {
+    console.log(this.props)
     const loading = () => <div className="animated fadeIn pt-3 text-center">Loading...</div>;
     let event;
     let tickets = [];
-    if (this.state.isEventFetched) {
-      event = this.state.event
-      console.log(this.state)
-      for (let ticketType in event.ticketTypes){
+    if (this.state.isEventFetched && typeof this.props.event !== 'undefined') {
+      event = this.props.event
+
+      for (let ticketType in this.props.event.ticketTypes){
         let ticket = event.ticketTypes[ticketType]
         console.log(ticket)
         tickets.push(
@@ -284,12 +283,12 @@ class Event extends Component {
                 <br />
                 <Row>
                   <Col>
-                    {this.state.isEventFetched?  <div dangerouslySetInnerHTML={{__html: event.description}}></div> : ""}
+                    {this.state.isEventFetched?  <div dangerouslySetInnerHTML={{__html: event.description}}></div> : loading}
                   </Col>
                   <Col>
                     <p> 
                       <i className="icon-location-pin icons font-2x lmt-4"></i>
-                      <div>{this.state.isEventFetched? event.location.name : ''}</div>
+                      <div>{this.state.isEventFetched? event.location.name.split(',')[0] : ''}</div>
                       <p className="text-muted">{this.state.isEventFetched? event.location.address.streetAddress: ''}<br />Washington, DC 20001</p>
                     </p>
                     <p><i className="icon-clock icons font-2x lmt-4"></i><p className="text-muted">{this.state.isEventFetched? this.getTime(event.startDate, "start") + " to " + this.getTime(event.endDate, "end"): ''} </p></p>
@@ -300,7 +299,7 @@ class Event extends Component {
                     <Fade in={this.state.fadeIn && this.state.collapse && this.state.quantity > 0} tag="h5" className="mt-3">
                       {/* <Button color="success" size="lg" style={{ marginBottom: '1rem' }}>Checkout</Button> */}
                       <div>Total: ${this.state.total}</div>
-                      <StripeCheckout metadata={ !this.state.event ? {}:{tickets: this.state.event.ticketTypes, id:this.state.event._id, total: this.state.total, updatedAt: this.state.event.updatedAt}}/>
+                      <StripeCheckout metadata={ !this.props.event ? {}:{tickets: this.props.event.ticketTypes, id:this.props.event._id, total: this.state.total, updatedAt: this.props.event.updatedAt}}/>
                     </Fade>
                   </Col>
                 </Row>
