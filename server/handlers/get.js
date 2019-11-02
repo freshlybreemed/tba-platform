@@ -6,12 +6,15 @@ const url = require('url')
 const { balanceApi } = require('../helpers/payments')
 
 const getApi = fn => async (req, res) => {
+  console.log("got it")
+  console.log('req.url',req.url)
     try {
       const parse = req.url.split('/')
-      switch("/"+parse[1]+"/"+parse[2]){
+      const path = `/${parse[1]}/${parse[2]}`
+      switch(path){
         case "/api/event":
           return await fn(events(req,res))
-        case "/api/eventsByOrganizer":
+        case "/api/events":
           return await fn(eventsByOrganizer(req,res))
         case "/api/balance":
           return await fn(balanceApi(req,res))

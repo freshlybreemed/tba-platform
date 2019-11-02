@@ -7,34 +7,42 @@ const ObjectId = require('mongodb').ObjectID;
 const redirect = require('micro-redirect')
 const cors = require('micro-cors')()
 
-const dispatchTicket = (token, quantity) => {
-  const headers = {
-    Authorization: "Token " + process.env.GUEST_PASS_KEY,
-    "Content-Type": "application/json"
-  };
-  var tickets = []
-  for (var i = 0;i<quantity;i++){
-    var tix =  axios({
-      method: "post",
-      url: "https://app.guestmanager.com/api/public/v2/tickets",
-      data: {
-        ticket: {
-          event_ticket_type_id: 26926,
-          name: token.card.name,
-          email: token.email,
-          dispatch: true
-        }
-      },
-      headers: headers
-    }).then((ticket)=>{
-      console.log(ticket.data)
-    }).catch((err)=>{
-      console.log(err)
-    })
-    tickets.push(tix)
-  }
-  return Promise.all(tickets)
-};
+const wrapAsync = handler => (req, res) => handler(req)
+    .then(result => res.json(result))
+    .catch(error => res.status(500).json({ error: error.message }))
+
+    const dispatchTicket = (eventCheckout) => {
+      var tickets = []
+      let quantity = 0
+      let ticketId = ""
+      for (var item in eventCheckout.cart){
+        quantity += eventCheckout.cart[item].quantity
+        ticketId = eventCheckout.cart[item].id
+      }
+      for (var i = 0;i<quantity;i++){
+        tickets.push(
+          axios({
+            method: "post",
+            url: "https://app.guestmanager.com/api/public/v2/tickets",
+            data: {
+              ticket: {
+                ticket_type_id: ticketId,
+                event_id: eventCheckout.guestId,
+                name: `${eventCheckout.firstName} ${eventCheckout.lastName}`,
+                email: eventCheckout.emailAddress,
+                dispatch: true
+              }
+            },
+            headers
+          }).then((ticket)=>{
+            console.log(ticket.data)
+          }).catch((err)=>{
+            console.log(err)
+          })
+        )
+      }
+      return Promise.all(tickets)
+    };
 const stripeChargeCallback = (res, metadata) => async (err, charge) => {
   console.log(metadata)
   if (err) {
@@ -53,21 +61,58 @@ const stripeChargeCallback = (res, metadata) => async (err, charge) => {
       charges.push(customer)
       console.log(customer.created)
     })
-    await collection.findOneAndUpdate({_id: ObjectId(metadata.eventId)},{$inc:obj, $push: {"tickets": { $each: charges}}, $set: {"updatedAt": parseInt(new Date() /1000)}},{returnNewDocument:true})
+    await collection.findOneAndUpdate({_id: ObjectId(metadata.eventId)},{$inc:obj, $push: {"tickets": { $each: charges, $position: 0}}, $set: {"updatedAt": parseInt(new Date() /1000)}},{returnNewDocument:true})
     redirect(res, 200, `/event/${metadata.eventId}/confirmation`)
   }
 };
-const ticketApi = async (req, res) => {
-  const data = await json(req);
-  console.log(data)
-  const body = {
-    source: data.token.id,
-    amount: data.amount,
-    currency: "usd",
-    metadata: data.metadata
-  };
-  stripe.charges.create(body, stripeChargeCallback(res, body.metadata));
-};
+const updateTixCount = async (cart, eventId, charges) => {
+  console.log('charges get', charges)
+  const obj = {}
+  for(var tix in cart){
+    const key = `ticketTypes.${tix}.currentQuantity`
+    obj[key] = -cart[tix]
+  }
+  return await db.collection('tba').findOneAndUpdate(
+    {_id: ObjectId(eventId)},
+    {
+      $inc:obj, 
+      $push: {"tickets": { $each: charges, $position: 0}}, 
+      $set: {"updatedAt": parseInt(new Date() /1000)}
+    })
+}
+
+
+const ticketApi =  wrapAsync(async (req) => {
+  try {
+    const charges = []
+    const body = await json(req)
+    console.log(body)
+    let { eventCheckout, token } = body
+    let cart = {}
+    for (let tix in eventCheckout.cart){
+      cart[tix] = eventCheckout.cart[tix].quantity
+    }
+    delete eventCheckout.cart
+    const obj = {
+      ...eventCheckout,
+      ...cart,
+    }
+    charges.push(await stripe.charges.create({
+      amount: eventCheckout.total,
+      currency: "usd",
+      description: `TBA Ticket - ${eventCheckout.title}`,
+      source: token.id,
+      metadata: obj
+    }));
+    const event =  await updateTixCount(cart, eventCheckout.eventId, charges)
+    dispatchTicket(eventCheckout)
+    return event
+  } catch (err) {
+    console.log(err);
+    return err
+  }
+});
+
 const updateAndSaveApi = async (id, list) => {
    console.log("update: "+id)
    // Connect to MongoDB and get the database

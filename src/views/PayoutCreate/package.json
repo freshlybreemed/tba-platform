@@ -1,6 +1,0 @@
-{
-  "name": "PayoutCreate",
-  "version": "0.0.0",
-  "private": true,
-  "main": "./PayoutCreate.js"
-}

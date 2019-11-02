@@ -1,6 +1,0 @@
-{
-  "name": "TicketConfirmation",
-  "version": "0.0.0",
-  "private": true,
-  "main": "./TicketConfirmation.js"
-}
