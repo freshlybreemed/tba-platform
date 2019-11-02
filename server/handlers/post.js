@@ -2,7 +2,7 @@
 const { handleErrors } = require('../helpers/error')
 const { postS3 } = require('../helpers/upload')
 const { userApi } = require('../helpers/user')
-const { create } = require('../helpers/create')
+const { create } = require('../helpers/events')
 const { createAccount, ticketApi, balanceApi } = require('../helpers/payments')
 const { send } = require('micro')
 
@@ -16,7 +16,7 @@ const postApi = fn => async (req, res) => {
           return await fn(create(req,res))
         case "/account":
           return await fn(createAccount(req,res))
-        case "/payments":
+        case "/charge":
           return await fn(ticketApi(req,res))  
         case "/balance":
           return await fn(balanceApi(req,res))
