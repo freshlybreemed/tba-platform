@@ -2,16 +2,32 @@ import { Button, Card, Col, Divider, Row } from 'antd';
 
 import MockInvoice from '../demos/mock/invoice';
 import { formatPrice } from '../lib/helpers';
+import { connect } from 'react-redux';
+import { STATUS_CODES } from 'http';
 
-const Invoice = () => {
+const Invoice = (props) => {
+  console.log(props)
+  const event = props.myEvents[0]
+  const { user } = props
   const tax = 15;
   const getSubTotal = () =>
-    MockInvoice.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    invoice.reduce((sum, item) => sum + item.quantity * (item.price+ item.fees), 0);
 
   const getCalculatedTax = () => (tax * getSubTotal()) / 100;
-
+  const getFreshlyTax = () => 
+    -invoice.reduce((sum, item) => sum + item.quantity * item.fees, 0)
+  
   const getTotal = () => getSubTotal() + getCalculatedTax();
-
+  const ticketTypes = Object.keys(event.ticketTypes)
+  const invoice = ticketTypes.map(ticket => {
+    return {
+      title: ticket,
+      subtitle: 'Tickets sold',
+      price: event.ticketTypes[ticket].price,
+      quantity: -event.ticketTypes[ticket].currentQuantity + event.ticketTypes[ticket].startingQuantity,
+      fees: event.ticketTypes[ticket].fees
+    }
+  })
   return (
     <>
       <Card
@@ -21,41 +37,40 @@ const Invoice = () => {
       >
         <div className="bg-dark text-light rounded-top p-5">
           <div className="p-5">
-            <h1 className="text-white">Envato</h1>
+            <h1 className="text-white">{event.title}</h1>
             <Row type="flex" justify="space-between">
               <Col>
                 <ul className="list-unstyled">
-                  <li>Apple Inc</li>
+                  <li>{event.organizer}</li>
                   <li>Austin Walker</li>
-                  <li>austin.walker94@example.com</li>
+                  <li>{user.email}</li>
                 </ul>
                 <ul className="list-unstyled">
-                  <li>4783 Blue Island Ave</li>
-                  <li>Ljan terrasse 346</li>
-                  <li>Vear</li>
-                  <li>Rogaland</li>
-                  <li>3095</li>
+                  <li>{event.location.name.split(',')[0]}</li>
+                  <li>{event.location.address.streetAddress}</li>
+                  <li>{event.location.address.city}, {event.location.address.state}, {event.location.address.postalCode}</li>
                   <li>United States of America</li>
+                </ul>
+              
+              </Col>
+              <Col className="text-right">
+                <ul className="list-unstyled">
+                  <li>TBA</li>
+                  {/* <li>Francine Miles</li> */}
+                  <li>stamp@whatstba.com</li>
                 </ul>
                 <ul className="list-unstyled">
                   <li>Invoice #45789</li>
                   <li>November 05, 2019</li>
                 </ul>
-              </Col>
-              <Col className="text-right">
-                <ul className="list-unstyled">
-                  <li>Amazon AWS</li>
-                  <li>Francine Miles</li>
-                  <li>frank.miles98@example.com</li>
-                </ul>
-                <ul className="list-unstyled">
+                {/* <ul className="list-unstyled">
                   <li>1033 W Sherman Dr</li>
                   <li>798 Mariana Isle</li>
                   <li>Lake Maegan</li>
                   <li>Wyoming</li>
                   <li>00 263</li>
                   <li>South Africa</li>
-                </ul>
+                </ul> */}
               </Col>
             </Row>
           </div>
@@ -77,7 +92,7 @@ const Invoice = () => {
               </div>
             </Row>
             <Divider className="m-0" />
-            {MockInvoice.map((item, index) => (
+            {invoice.map((item, index) => (
               <div key={index}>
                 <Row
                   type="flex"
@@ -103,7 +118,7 @@ const Invoice = () => {
                     </small>
                   </div>
                   <div className="text-right">
-                    <span>{formatPrice(item.price * item.quantity)}</span>
+                    <span>{formatPrice((item.price+ item.fees) * item.quantity)}</span>
                   </div>
                 </Row>
                 <Divider className="m-0" />
@@ -125,9 +140,35 @@ const Invoice = () => {
                   align="middle"
                   className="py-4"
                 >
-                  <small className="mr-auto text-muted">Subtotal</small>
+                  <small className="mr-auto text-muted">Gross Sales</small>
                   <span className="text-right">
                     {formatPrice(getSubTotal())}
+                  </span>
+                </Row>
+                <Divider className="m-0" />
+                <Row
+                  type="flex"
+                  justify="space-between"
+                  align="middle"
+                  className="py-4"
+                >
+                  <span>TBA </span>
+                  <small className="mr-auto text-muted">- Service Fees</small>
+                  <span className="text-right">
+                    {formatPrice(getFreshlyTax())}
+                  </span>
+                </Row>
+                <Divider className="m-0" />
+                <Row
+                  type="flex"
+                  justify="space-between"
+                  align="middle"
+                  className="py-4"
+                >
+                  <span>TBA </span>
+                  <small className="mr-auto text-muted">- Payment Processing Fees</small>
+                  <span className="text-right">
+                    {formatPrice(getFreshlyTax())}
                   </span>
                 </Row>
                 <Divider className="m-0" />
@@ -163,7 +204,7 @@ const Invoice = () => {
                   align="middle"
                   className="py-4"
                 >
-                  <small className="mr-auto text-muted">Total</small>
+                  <small className="mr-auto text-muted">Net Sales</small>
                   <strong>{formatPrice(getTotal())}</strong>
                 </Row>
                 <Divider className="m-0 bg-primary" />
@@ -182,4 +223,9 @@ const Invoice = () => {
   );
 };
 
-export default Invoice;
+export default connect((state)=>{
+  return {
+    myEvents: state.myEvents,
+    user: state.user
+  }
+})(Invoice);
