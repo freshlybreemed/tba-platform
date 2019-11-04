@@ -34,6 +34,7 @@ import {
     message,
     Progress,
     Row,
+    Statistic,
     Switch,
     Table,
     Tag,
@@ -136,7 +137,59 @@ const getPercentage = (event) => {
     return parseInt((sold/total) *100);
   }
 
-const desktopColumns = [
+const payoutsDesktopColumns = [
+    {
+      title: 'Initiated On',
+      dataIndex: 'key',
+      key: 'key',
+      render: order => <Link href={`/manage/`}>{order}</Link>
+    },
+    {
+      title: 'Payout Method',
+      dataIndex: 'name',
+      key: 'name'
+     },
+    {
+      title: 'Status',
+      dataIndex: 'age',
+      key: 'age'
+    },
+    {
+      title: 'Est. Arrival',
+      dataIndex: 'total',
+      key: 'total',
+      render: total => `$${total}`
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'total',
+      key: 'total',
+      render: total => `$${total}`
+    },
+    // {
+    //   title: 'Action',
+    //   key: 'action',
+    //   render: (text, record) => {
+    //     const menu = (
+    //       <Menu >
+    //         <Menu.Item key={1}><Link href={`/e/${record.slug}`}>Edit</Link></Menu.Item>
+    //         <Menu.Item key={2}><Link href={`/manage/${record._id}`}>Invalidate</Link></Menu.Item>
+    //         <Menu.Item key={3}><Link href={`/create`}>Refund</Link></Menu.Item>
+    //       </Menu>
+    //     );
+    //     return (
+    //       <span>
+    //         <Dropdown overlay={menu}>
+    //         <Button>
+    //           Edit <Icon type="down" />
+    //         </Button>
+    //         </Dropdown>
+    //       </span>
+    //     )
+    //   }
+    // }
+  ];
+const ordersDesktopColumns = [
     {
       title: 'Order #',
       dataIndex: 'key',
@@ -182,7 +235,7 @@ const desktopColumns = [
     //   }
     // }
   ];
-const mobileColumns = [
+const ordersMobileColumns = [
     // {
     //   title: '#',
     //   dataIndex: 'key',
@@ -325,7 +378,31 @@ padding: 0.5rem 0;
         }
         this.setState({ticketDayCount, totalTicketCount, totalBalance:totalBalance.toFixed(2)},()=>console.log(this.state))
     }
+    renderTicketTypes = () => {
+      let ticketTypes = this.props.event.ticketTypes
+      const tickets = Object.keys(ticketTypes)
+      const spanCount = 24/ tickets.length
+      const gridStyle = {
+        width: '25%',
+        textAlign: 'center',
+        boxShadow: 'none'
+      };
+      return tickets.map(type=>{
 
+        const percentage = ((1 - (ticketTypes[type].currentQuantity / ticketTypes[type].startingQuantity)) *100).toString().split('.')[0]
+        return ( 
+            <Card.Grid hoverable={false} style={gridStyle}   bordered={false}>
+              <Text strong>{ticketTypes[type].name}</Text> 
+              <br />
+              <Progress type="circle" percent={percentage} width={80} />
+              <br />
+              <Text>{`${ticketTypes[type].currentQuantity}/${ticketTypes[type].startingQuantity}`} available</Text>
+            </Card.Grid>
+          )
+      })
+      
+
+    }
     renderRecentOrders = () => {
         let recentOrders = [];
 
@@ -358,9 +435,13 @@ padding: 0.5rem 0;
   
     render = () => {
       const { event } = this.props
-        const customizeRenderEmpty = () => (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Sales Yet"/>
+      console.log(this.renderTicketTypes())
+        const customizeRenderEmpty = (type) => (<>
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`No ${type} Yet`}/>
+          {type === 'Payouts'? <Button>Setup Payouts</Button>:""}
+          </>
         );
+
         return (
             <>
               <Title level={3}>{event.title}</Title>
@@ -409,15 +490,23 @@ padding: 0.5rem 0;
                   </Col>
               </Row>
               <Card title="Recent Orders">    
-                {/* <ConfigProvider renderEmpty={customizeRenderEmpty}>
-                  <Table columns={isMobile? mobileColumns: desktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
+                {/* <ConfigProvider renderEmpty={() => customizeRenderEmpty('Sales')}>
+                  <Table columns={isMobile? ordersMobileColumns: ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
                 </ConfigProvider> */}
               </Card>
               <Card>
-              <Table columns={desktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
+              <Table columns={ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
               </Card>
-              <Card title="Payouts" extra={<Button>Setup Payouts</Button>}></Card>
-              <Card title="Sales by Ticket Type"></Card>
+              <Card title="Payouts">
+                <ConfigProvider renderEmpty={() => customizeRenderEmpty('Payouts')}>
+                  <Table size="small" {...{pagination: false}} dataSource={[]} columns={isMobile? ordersMobileColumns: payoutsDesktopColumns} />
+                </ConfigProvider>
+
+              </Card>
+              <Card title="Sales by Ticket Type">
+
+                {this.renderTicketTypes()}
+              </Card>
               <Card
                 title="Sales analytics"
                 extra={

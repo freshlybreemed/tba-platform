@@ -1,4 +1,4 @@
-import { Avatar, Button, ConfigProvider, Modal, Form, Input, Icon, InputNumber,  List, Typography, Radio } from 'antd';
+import { Avatar, Button, Checkbox, ConfigProvider, Modal, Form, Input, Icon, InputNumber,  List, Typography, Radio } from 'antd';
 import { connect } from 'react-redux';
 import { createForm, createFormField, formShape } from 'rc-form';
 
@@ -26,7 +26,9 @@ class TicketCreateForm extends React.Component {
             })(<Input />)}
           </Form.Item>
           <Form.Item label="Quantity">
-            {getFieldDecorator('startingQuantity')(<InputNumber />)}
+            {getFieldDecorator('startingQuantity', {
+                            rules: [{ required: true, message: 'Please input the title of collection!' }],
+            })(<InputNumber />)}
           </Form.Item>
           <Form.Item label="Price">
             {getFieldDecorator('price', {
@@ -35,6 +37,15 @@ class TicketCreateForm extends React.Component {
           </Form.Item>
           <Form.Item label="Description">
             {getFieldDecorator('description')(<Input type="textarea" />)}
+          </Form.Item>
+          <Form.Item label="Show guests number of remaining tickets">
+            {getFieldDecorator('showRemaining', {
+              rules: [
+                {
+                required: true,
+                message: 'Please input your E-mail!'
+              }
+            ]})(<Checkbox />)}
           </Form.Item>
           <Form.Item label="Ticket Type">
             {getFieldDecorator('type', {
@@ -82,7 +93,7 @@ class TicketCreation extends React.Component {
       console.log('Received values of form: ', values);
       let formFields = values
       formFields.currentQuantity = values.startingQuantity
-      formFields.fees = values.price * .15
+      formFields.fees = values.price * .157
       let tickets = {...this.props.tickets}
       tickets[values.name] = formFields
       const tixArray = []

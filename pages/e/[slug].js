@@ -4,9 +4,10 @@ import Event from '../../components/Event';
 import fetch from 'isomorphic-unfetch'
 import { connect } from 'react-redux';
 import {AUTH_CONFIG} from '../../lib/auth0-variables';
+import axios from 'axios';
 
 const host = AUTH_CONFIG.host
-const EventPage = ({json, errorCode}) => {
+const EventPage = ({json, geo, errorCode}) => {
     var response
     switch (errorCode){
         case 200: 
@@ -19,7 +20,7 @@ const EventPage = ({json, errorCode}) => {
                     <script src="https://js.stripe.com/v3/"></script>
                     <link rel="stylesheet" href="/static/react-vis.css" />
                 </Head>
-                <Event json={json}/>
+                <Event json={json} geo={geo}/>
                 <style jsx>{`
           .StripeElement {
             display: block;
@@ -53,11 +54,16 @@ EventPage.getInitialProps = async (context) => {
     const res = await fetch(`${host}/api/event/${slug}`)
     const json = await res.json()
     const errorCode = json.length === 1? 200 : 404
+    let geo = ''
+    await axios.get('https://api.mapbox.com/geocoding/v5/mapbox.places/14238 castle blvd.json?country=US&access_token=pk.eyJ1IjoiZW5qc21vb3ZlIiwiYSI6ImNrMmo2bXE3eDAwdTgzZ3Fxb25pMGY3ZjAifQ.oTNCeEbBG3KIb0Ppk0RWsw')
+    .then(res=>{
+        geo = res.data.features[0].geometry
+    })
     context.store.dispatch({
         type: 'fetch_event',
         payload: json[0]
     })
-    return { json: json[0], errorCode }
+    return { json: json[0], geo, errorCode }
 }
 
 export default connect()(EventPage);
