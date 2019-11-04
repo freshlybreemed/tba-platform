@@ -1,13 +1,15 @@
-import { Button, Card, Col, Collapse, Divider, Icon,message, Input,Modal, Row, Tag, Table, Select, Steps, Statistic} from 'antd'
+import { Button, Card, Col, Collapse, Divider, Icon,message, Input,Modal, Row, Tag, Table, Select, Spin, Steps, Statistic} from 'antd'
 import { Calendar, Target } from 'react-feather'
 import {StripeProvider} from 'react-stripe-elements';
 import CardSection from './CardSection'
 import EventCheckout from './EventCheckout'
 import { Component } from 'react';
 import { connect } from 'react-redux';
-import Dinero from 'dinero.js';
+import MapGL, { Marker, NavigationControl, Popup } from 'react-map-gl';
 import {Result} from 'antd'
 import PropTypes from 'prop-types';
+import axios from 'axios'
+import { formatPrice } from '../lib/helpers';
 
 const { Option } = Select;
 const { Meta } = Card;
@@ -75,7 +77,6 @@ class Event extends Component {
             tickettypes.push(ticketTypes[ticket])
         }
         this.setState({data: tickettypes})
-        console.log(this.props)
     }
     handleIncrement(value, type) { 
         const { selectedEvent } = this.props
@@ -124,7 +125,7 @@ class Event extends Component {
                 if (text===0) 
                     price = "Free"
                 else
-                    price= `$${text} + ${Dinero({amount:ticket.fees*100}).toFormat()} Fees`
+                    price= `$${text} + ${formatPrice(ticket.fees)} Fees`
                 return (<>{price}</>)
                 }
         
@@ -165,7 +166,7 @@ class Event extends Component {
                 title: 'Select Tickets',
                 content: <>
                             <Table pagination={false} 
-                            footer={() => `Total: ${Dinero({amount: eventCheckoutForm.total}).toFormat()}`}
+                            footer={() => `Total: ${formatPrice(eventCheckoutForm.total)}`}
                             columns={columns} dataSource={this.state.data} />
                         </> ,
             },
@@ -186,7 +187,7 @@ class Event extends Component {
                 title: 'Select Tickets',
                 content: <>
                             <Table pagination={false} 
-                            footer={() => `Total: ${Dinero({amount: eventCheckoutForm.total}).toFormat()}`}
+                            footer={() => `Total: ${formatPrice(eventCheckoutForm.total)}`}
                             columns={columns} dataSource={this.state.data} />
                         </> ,
             },
@@ -264,6 +265,24 @@ class Event extends Component {
                     <Button key="buy">Buy Again</Button>,
                     ]}
                 />}
+                    <Row>fg
+                        <MapGL
+                            {...{latitude: 37.785164,
+                            longitude: -100,
+                            zoom: 3.5,
+                            bearing: 0,
+                            pitch: 0      }    }              
+                            width="100%"
+                        height="100%"
+                        mapStyle="mapbox://styles/mapbox/dark-v9"
+                        // onViewportChange={this._updateViewport}
+                        mapboxApiAccessToken={process.env.mapBoxApi}
+                        >
+                        {/* {CITIES.map(this._renderCityMarker)}
+                        {this._renderPopup()} */}
+                        {/* <NavigationControl onViewportChange={this._updateViewport} /> */}
+                        </MapGL>
+                    </Row>
                 </Card>
             </>
         )

@@ -11,6 +11,7 @@ import {
   Elements,
   injectStripe,
 } from 'react-stripe-elements';
+import { Spin } from 'antd'
 import { connect } from 'react-redux';
 import axios from 'axios'
 
@@ -55,9 +56,13 @@ const createOptions = (fontSize, padding) => {
 class _CardForm extends React.Component {
   constructor(props){
     super(props)
+    this.state = {
+      processing: false
+    }
   }
   handleSubmit = (ev) => {
     ev.preventDefault();
+    this.setState({processing: true})
     if (this.props.stripe) {
       this.props.stripe
         .createToken({ 
@@ -82,21 +87,25 @@ class _CardForm extends React.Component {
     }
   };
   render() {
+    const { processing } = this.state
+    
     return (
-      <form onSubmit={this.handleSubmit}>
-        <label class="label" class="label">
-          <div className="ant-input">
-          <CardElement 
-            onBlur={handleBlur}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onReady={handleReady}
-            {...createOptions(this.props.fontSize)}
-          />
-          </div>
-        </label>
-        <button class="ant-btn ant-btn-primary">Pay</button>
-      </form>
+      <Spin spinning={processing} tip="Loading...">
+        <form onSubmit={this.handleSubmit}>
+          <label class="label" class="label">
+            <div className="ant-input">
+            <CardElement 
+              onBlur={handleBlur}
+              onChange={handleChange}
+              onFocus={handleFocus}
+              onReady={handleReady}
+              {...createOptions(this.props.fontSize)}
+            />
+            </div>
+          </label>
+          <button class="ant-btn ant-btn-primary">Pay</button>
+        </form>
+      </Spin>
     );
   }
 }
