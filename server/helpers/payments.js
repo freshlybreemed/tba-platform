@@ -11,60 +11,41 @@ const wrapAsync = handler => (req, res) => handler(req)
     .then(result => res.json(result))
     .catch(error => res.status(500).json({ error: error.message }))
 
-    const dispatchTicket = (eventCheckout) => {
+    const dispatchTicket = async (eventCheckout) => {
       var tickets = []
       let quantity = 0
       let ticketId = ""
       for (var item in eventCheckout.cart){
-        quantity += eventCheckout.cart[item].quantity
+        quantity = eventCheckout.cart[item].quantity
         ticketId = eventCheckout.cart[item].id
-      }
-      for (var i = 0;i<quantity;i++){
-        tickets.push(
-          axios({
-            method: "post",
-            url: "https://app.guestmanager.com/api/public/v2/tickets",
-            data: {
-              ticket: {
-                ticket_type_id: ticketId,
-                event_id: eventCheckout.guestId,
-                name: `${eventCheckout.firstName} ${eventCheckout.lastName}`,
-                email: eventCheckout.emailAddress,
-                dispatch: true
-              }
-            },
-            headers
-          }).then((ticket)=>{
-            console.log(ticket.data)
-          }).catch((err)=>{
-            console.log(err)
-          })
-        )
-      }
-      return Promise.all(tickets)
+        for (var i = 0;i<quantity;i++){
+          tickets.push(
+            axios({
+              method: "post",
+              url: "https://app.guestmanager.com/api/public/v2/tickets",
+              data: {
+                ticket: {
+                  ticket_type_id: ticketId,
+                  event_id: eventCheckout.guestId,
+                  name: `${eventCheckout.firstName} ${eventCheckout.lastName}`,
+                  email: eventCheckout.emailAddress,
+                  dispatch: true
+                }
+              },
+              headers
+            }).then((ticket)=>{
+              console.log("ticket success")
+              console.log(ticket)
+            }).catch((err)=>{
+              console.log("err")
+              console.log(err)
+            })
+          )
+        }
+      }    
+      await Promise.all(tickets)
     };
-const stripeChargeCallback = (res, metadata) => async (err, charge) => {
-  console.log(metadata)
-  if (err) {
-    console.log(err)
-    send(res, 500, { error: err });
-  } else {
-    const collection = await (await connect()).collection('tba')
-    const obj = {}
-    for(var tix in metadata){
-      if (tix === "eventId" || tix === "updatedAt") continue
-      const key = `ticketTypes.${tix}.currentQuantity`
-      obj[key] = -metadata[tix]
-    }
-    const charges = []
-    await stripe.charges.list({limit: 100, created:{gt:metadata.updatedAt}}).autoPagingEach(function(customer) {
-      charges.push(customer)
-      console.log(customer.created)
-    })
-    await collection.findOneAndUpdate({_id: ObjectId(metadata.eventId)},{$inc:obj, $push: {"tickets": { $each: charges, $position: 0}}, $set: {"updatedAt": parseInt(new Date() /1000)}},{returnNewDocument:true})
-    redirect(res, 200, `/event/${metadata.eventId}/confirmation`)
-  }
-};
+
 const updateTixCount = async (cart, eventId, charges) => {
   console.log('charges get', charges)
   const obj = {}

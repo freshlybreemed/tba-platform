@@ -265,7 +265,9 @@ class Event extends Component {
                     <Button key="buy">Buy Again</Button>,
                     ]}
                 />}
-                    <Row>fg
+                    {/* <Row> */}
+                    {/* <div className="full-workspace">
+
                         <MapGL
                             {...{latitude: 37.785164,
                             longitude: -100,
@@ -278,11 +280,12 @@ class Event extends Component {
                         // onViewportChange={this._updateViewport}
                         mapboxApiAccessToken={process.env.mapBoxApi}
                         >
-                        {/* {CITIES.map(this._renderCityMarker)}
-                        {this._renderPopup()} */}
-                        {/* <NavigationControl onViewportChange={this._updateViewport} /> */}
+                       {CITIES.map(this._renderCityMarker)}
+                        {this._renderPopup()} 
+                         <NavigationControl onViewportChange={this._updateViewport} /> 
                         </MapGL>
-                    </Row>
+                        </div> */}
+                    {/* /Row>  */}
                 </Card>
             </>
         )
@@ -298,3 +301,4 @@ const mapStateToProps = state => {
     }
 }
 export default connect(mapStateToProps)(Event)
+

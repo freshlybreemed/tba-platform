@@ -7,7 +7,7 @@ import { STATUS_CODES } from 'http';
 
 const Invoice = (props) => {
   console.log(props)
-  const event = props.myEvents[0]
+  const event = props.event
   const { user } = props
   const tax = 15;
   const getSubTotal = () =>
@@ -47,8 +47,8 @@ const Invoice = (props) => {
                 </ul>
                 <ul className="list-unstyled">
                   <li>{event.location.name.split(',')[0]}</li>
-                  <li>{event.location.address.streetAddress}</li>
-                  <li>{event.location.address.city}, {event.location.address.state}, {event.location.address.postalCode}</li>
+                  <li>{event.location.streetAddress}</li>
+                  <li>{event.location.city}, {event.location.state}, {event.location.postalCode}</li>
                   <li>United States of America</li>
                 </ul>
               

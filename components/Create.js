@@ -210,7 +210,6 @@ class Create extends React.Component {
       });
     });
   }
- 
 
   handleLocationChange = address => {
     var event = {...this.state.event}
@@ -298,6 +297,7 @@ class Create extends React.Component {
     const { getFieldDecorator, getFieldValue, getFieldProps, getFieldError, setFieldsValue } = this.props.form;
     const { autoCompleteResult } = this.state;
     const { formState, createdEvent } = this.props
+    console.log('formstate',!createdEvent.tickets)
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
@@ -368,7 +368,7 @@ class Create extends React.Component {
             {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
                 <div>
                 
-                  <Input
+                  <Input 
                     {...getInputProps({
                     className: 'form-control',
                     id:"text-input"
@@ -396,13 +396,16 @@ class Create extends React.Component {
                     );
                     })}
                     </div>
+                    <Checkbox>
+             The event's location is TBD
+            </Checkbox>
                 </div>)}
             </PlacesAutocomplete>:''}
           </FormItem>
         <Form.Item  {...formItemLayout} label="Start Time" style={{ marginBottom: 0 }}>
           <Form.Item
             style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
-             <DatePicker readonly {...getFieldProps('createdEventForm.startDate', {
+             <DatePicker readonly disabled={createdEvent.eventStatus === 'live' && createdEvent.tickets} {...getFieldProps('createdEventForm.startDate', {
                 rules: [
                   {
                     required: true,
@@ -413,7 +416,7 @@ class Create extends React.Component {
           </Form.Item>
           <span style={{ display: 'inline-block', width: '24px', textAlign: 'center' }}>-</span>
           <FormItem style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
-            <TimePicker {...getFieldProps('createdEventForm.startTime', {
+            <TimePicker disabled={createdEvent.eventStatus === 'live'  && createdEvent.tickets} {...getFieldProps('createdEventForm.startTime', {
               getValueFromEvent: (e) => {
                 const momento = getFieldValue("createdEventForm.startDate")
                 if (moment.isMoment(momento)){
@@ -436,7 +439,7 @@ class Create extends React.Component {
           </Form.Item>
         <FormItem {...formItemLayout} style={{ marginBottom: 0 }} label="End Time">
         <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
-            <DatePicker {...getFieldProps('createdEventForm.endDate', {
+            <DatePicker disabled={createdEvent.eventStatus === 'live' && createdEvent.tickets} {...getFieldProps('createdEventForm.endDate', {
                 rules: [
                   {
                     required: true,
@@ -453,7 +456,7 @@ class Create extends React.Component {
           </Form.Item>
         <span style={{ display: 'inline-block', width: '24px', textAlign: 'center' }}>-</span>
           <FormItem validateStatus={getFieldError('createdEventForm.endTime') ? "error" :""} help={getFieldError('createdEventForm.endTime') ? "End time must be after start time!":""} style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
-            <TimePicker   
+            <TimePicker   disabled={createdEvent.eventStatus === 'live' && createdEvent.tickets}
             {...getFieldProps('createdEventForm.endTime', {
                         initialValue: '',
               getValueFromEvent: (e) => {
@@ -588,7 +591,8 @@ const mapStateToProps = (state) => {
         endTime: state.createdEventForm.endTime,
         refundable: state.createdEventForm.refundable,
         organizer: state.createdEventForm.organizer,
-        description: state.createdEventForm.description
+        description: state.createdEventForm.description,
+        eventStatus: state.createdEventForm.eventStatus
       },
     };
   }

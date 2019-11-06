@@ -161,34 +161,37 @@ class MyEvents extends React.Component {
                 console.log('cmon man')
                 this.props.dispatch({ type: 'edit_event', payload: event})
               }} key="3"><Link href={`/cre`}>Edit</Link></Menu.Item>
-              <Menu.Item key="4">  <Popconfirm
-              title="Are you sure delete this event?"
-              onConfirm={() => {
-                console.log({
-                  data: event
-                })
-                axios.delete(`/api/event/${event._id}`
-                ).then(res=> {
-                  console.log(res.data);
-                  this.props.dispatch({
-                    type: 'event_deletion',
-                    payload: event._id
+              {event.eventStatus === 'draft' || !event.tickets ?
+              <Menu.Item key="4">  
+                <Popconfirm
+                title="Are you sure delete this event?"
+                onConfirm={() => {
+                  console.log({
+                    data: event
                   })
-                })
-                .catch(err=>{
-                  console.log(err)
-                })
-              }
-              }
-              onCancel={(e)=> {
-                console.log(e);
-                message.error('Click on No');
-              }}
-              okText="Yes"
-              cancelText="No"
-            >
-              <a href="#">Delete</a>
-            </Popconfirm></Menu.Item>
+                  axios.delete(`/api/event/${event._id}`
+                  ).then(res=> {
+                    console.log(res.data);
+                    this.props.dispatch({
+                      type: 'event_deletion',
+                      payload: event._id
+                    })
+                  })
+                  .catch(err=>{
+                    console.log(err)
+                  })
+                }
+                }
+                onCancel={(e)=> {
+                  console.log(e);
+                  message.error('Click on No');
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <a href="#">Delete</a>
+              </Popconfirm>
+            </Menu.Item>:""}
 
             </Menu>
 
