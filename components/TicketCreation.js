@@ -10,7 +10,7 @@ class TicketCreateForm extends React.Component {
   render() {
     const { visible, onCancel, onCreate, form } = this.props;
     console.log('props',this.props)
-    const { getFieldDecorator, getFieldValue } = form;
+    const { getFieldDecorator, getFieldValue, setFieldsValue, getFieldError } = form;
     return (
       <Modal
         visible={visible}
@@ -20,14 +20,14 @@ class TicketCreateForm extends React.Component {
         onOk={onCreate}
       >
         <Form layout="inline">
-          <Form.Item label="Ticket Name">
+          <Form.Item label="Ticket Name" validateStatus={getFieldError('name') ? "error" :""} help={getFieldError('name') ? "Enter a ticket name":""}>
             {getFieldDecorator('name', {
-              rules: [{ required: true, message: 'Please input the title of collection!' }],
+              rules: [{ required: true, type: "string", min:1, message: 'Please input the title of collection!' }],
             })(<Input />)}
           </Form.Item>
-          <Form.Item label="Quantity">
+          <Form.Item label="Quantity" validateStatus={getFieldError('startingQuantity') ? "error" :""} help={getFieldError('startingQuantity') ? "Enter a quantity greater than 1":""} >
             {getFieldDecorator('startingQuantity', {
-                            rules: [{ required: true, message: 'Please input the title of collection!' }],
+              rules: [{ required: true, type: "number", min: 0, max: 100}]
             })(<InputNumber />)}
           </Form.Item>
           <Form.Item label="Price">
@@ -40,16 +40,17 @@ class TicketCreateForm extends React.Component {
           </Form.Item>
           <Form.Item label="Show guests number of remaining tickets">
             {getFieldDecorator('showRemaining', {
-              rules: [
-                {
-                required: true,
-                message: 'Please input your E-mail!'
-              }
-            ]})(<Checkbox />)}
+             })(<Checkbox />)}
           </Form.Item>
           <Form.Item label="Ticket Type">
             {getFieldDecorator('type', {
-              initialValue: "free"
+              initialValue: "free",
+              getValueFromEvent: (e) => {
+                if(e.target.value === 'free'){
+                  setFieldsValue({"price": 0})
+                }
+                return e.target.value
+              }
             })(
               <Radio.Group  >
                 <Radio  value="free">Free</Radio>
@@ -93,7 +94,7 @@ class TicketCreation extends React.Component {
       console.log('Received values of form: ', values);
       let formFields = values
       formFields.currentQuantity = values.startingQuantity
-      formFields.fees = values.price * .157
+      formFields.fees = values.price * .032 + 1.30
       let tickets = {...this.props.tickets}
       tickets[values.name] = formFields
       const tixArray = []
@@ -149,7 +150,7 @@ class TicketCreation extends React.Component {
               dataSource={this.state.tixArray}
               renderItem={item => (
               <List.Item
-                actions={[<a onClick={() => this.removeTicket(item.name)}>delete</a>, <a key="list-loadmore-more">more</a>]}
+                actions={[<a onClick={() => this.removeTicket(item.name)}>delete</a>, <a onClick={this.showModal}>edit</a>]}
               >
                   <List.Item.Meta
                   avatar={<Avatar icon="tag" />}

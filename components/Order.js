@@ -6,8 +6,6 @@ import {
     Tv,
     Bookmark,
     DollarSign,
-    Eye,
-    Menu,
     Edit,
     GitCommit,
     MessageCircle,
@@ -27,11 +25,13 @@ import {
     Col,
     ConfigProvider,
     DatePicker,
+    Descriptions,
     Divider,
     Dropdown,
     Empty,
     Icon,
     List,
+    Menu,
     message,
     Progress,
     Row,
@@ -49,11 +49,10 @@ import {
     VerticalBarSeries,
     VerticalGridLines,
     XAxis,
-    YAxis,
-    XYPlot,
-    LineSeries,
-    Crosshair
+    YAxis
   } from 'react-vis';
+  import { formatPrice } from '../lib/helpers';
+
   import { Component } from 'react'
   import {withRouter} from 'next/router';
   import Link from 'next/link';
@@ -75,21 +74,7 @@ import {
   const { Title, Text } = Typography;
 
 const axes = Array.from(Array(12).keys());
-const DATA = [
-  [
-    {x: 1, y: 10}, 
-    {x: 2, y: 7}, 
-    {x: 3, y: 8},
-    {x: 4, y: 4}, 
-    {x: 5, y: 5.2}, 
-    {x: 6, y: 10}
-  ],
-  [
-    {x: 1, y: 20}, 
-    {x: 2, y: 5}, 
-    {x: 3, y: 15}
-  ]
-];
+
 const generate = () => {
   let arr = [];
   axes.map(x => {
@@ -361,18 +346,14 @@ padding: 0.5rem 0;
     </small>
   );
 
-  class Manage extends Component {
+  class Order extends Component {
     constructor(props) {
       super(props)
-      this.state = {
-        crosshairValues: []
-      };
 
     }
     componentWillMount = () => {
       console.log(this.props)
       this.salesData()
-      console.log(this.renderRecentOrders())
     }
 
     salesData = () => {
@@ -396,183 +377,52 @@ padding: 0.5rem 0;
         }
         this.setState({ticketDayCount, totalTicketCount, totalBalance:totalBalance.toFixed(2)},()=>console.log(this.state))
     }
-    renderTicketTypes = () => {
-      let ticketTypes = this.props.event.ticketTypes
-      const tickets = Object.keys(ticketTypes)
-      const spanCount = 24/ tickets.length
-      const gridStyle = {
-        width: '25%',
-        textAlign: 'center',
-        boxShadow: 'none'
-      };
-      return tickets.map(type=>{
-
-        const percentage = ((1 - (ticketTypes[type].currentQuantity / ticketTypes[type].startingQuantity)) *100).toString().split('.')[0]
-        return ( 
-            <Card.Grid hoverable={false} style={gridStyle}   bordered={false}>
-              <Text strong>{ticketTypes[type].name}</Text> 
-              <br />
-              <Progress type="circle" percent={percentage} width={80} />
-              <br />
-              <Text>{`${ticketTypes[type].currentQuantity}/${ticketTypes[type].startingQuantity}`} available</Text>
-            </Card.Grid>
-          )
-      })
-      
-
-    }
-    renderRecentOrders = () => {
-        let recentOrders = [];
-
-        const capitalize = (text) => (
-          text.toLowerCase()
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-          )
-        const { event } = this.props
-        let count = 0
-        for (let order in event.tickets){
-          const person = event.tickets[order]
-          const date = new Date(person.created*1000).toString()
-          recentOrders.push(
-              {
-                  key: String(person.created).substring(5),
-                  name: `${capitalize(person.metadata.firstName)} ${capitalize(person.metadata.lastName)}`,
-                  age: getTixQuantity(person.metadata),
-                  date: getTime(date),
-                  total: `${(person.amount/100).toFixed(2)}`,
-                  eventId: event._id
-              }
-          )
-          count++;
-          if (count > 6) break
-          
-        }
-        console.log(recentOrders)
-        return recentOrders;
-    }
-    onNearestX = (value, {index}) => {
-      this.setState({crosshairValues: DATA.map(d => d[index])});
-    };
-    onMouseLeave = () => {
-      this.setState({crosshairValues: []});
-    }
+  
     render = () => {
-      const { event } = this.props
-      console.log(this.renderTicketTypes())
+        const { event, customer } = this.props
+        
         const customizeRenderEmpty = (type) => (<>
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`No ${type} Yet`}/>
-          {type === 'Payouts'? <Button>Setup Payouts</Button>:""}
-          </>
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`No ${type} Yet`}/>
+            {type === 'Payouts'? <Button>Setup Payouts</Button>:""}
+            </>
         );
-
+        var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
+        date.setUTCSeconds(customer.created);
+        const menu = (
+            <Menu >
+                <Menu.Item key={0}><Link>Edit Info</Link></Menu.Item>
+                <Menu.Item key={1}><Link>Refund</Link></Menu.Item>
+                <Menu.Item key={1}><Link>Transfer</Link></Menu.Item>
+            </Menu>
+            )
         return (
-            <>
-              <Title level={3}>{event.title}</Title>
-              <Eye size='20' color={`black`}/><Paragraph copyable>{`${host}/e/${event.slug}`}</Paragraph>
+            <><Title level={3}>{event.title}</Title>
 
-              <Row gutter={16}>
-                  <Col xs={24} sm={12} md={6}>
-                  <StatCard
-                      type="fill"
-                      title="Tixs Sold"
-                      value={this.state.totalTicketCount}
-                      icon={<BarChart size={20} strokeWidth={1} />}
-                      color={theme.primaryColor}
-                      clickHandler={() => message.info('Campaign stat button clicked')}
-                  />
-                  </Col>
-                  <Col xs={24} sm={12} md={6}>
-                  <StatCard
-                      type="fill"
-                      title="Balance"
-                      value={`$${this.state.totalBalance}`}
-                      icon={<DollarSign size={20} strokeWidth={1} />}
-                      color={theme.darkColor}
-                      clickHandler={() => message.info('Customers stat button clicked')}
-                  />
-                  </Col>
-                  <Col xs={24} sm={12} md={6}>
-                  <StatCard
-                      type="fill"
-                      title="24-Hour Sales"
-                      value={this.state.ticketDayCount? this.state.ticketDayCount + (this.state.ticketDayCount>1? " Tickets" : " Ticket"): "0"}
-                      icon={<Bell size={20} strokeWidth={1} />}
-                      color={theme.warningColor}
-                      clickHandler={() => message.info('Queries stat button clicked')}
-                  />
-                  </Col>
-                  <Col xs={24} sm={12} md={6}>
-                  <StatCard
-                      type="fill"
-                      title="Pageviews"
-                      value={870}
-                      icon={<Tv size={20} strokeWidth={1} />}
-                      color={theme.errorColor}
-                      clickHandler={() => message.info('Opens stat button clicked')}
-                  />
-                  </Col>
-              </Row>
-              <Card title="Recent Orders">    
-                {/* <ConfigProvider renderEmpty={() => customizeRenderEmpty('Sales')}>
-                  <Table columns={isMobile? ordersMobileColumns: ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
-                </ConfigProvider> */}
-              </Card>
-              <Card>
-              <Table columns={ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
-              </Card>
-              {/* <Card title="Payouts">
-                <ConfigProvider renderEmpty={() => customizeRenderEmpty('Payouts')}>
-                  <Table size="small" {...{pagination: false}} dataSource={[]} columns={isMobile? ordersMobileColumns: payoutsDesktopColumns} />
-                </ConfigProvider>
+                <Row gutter={16}>
+                    <Card
+                        bodyStyle={{ padding: '1rem' }}
+                        className="mb-4"  
+                        title={`Order Details (#${customer.created.toString().slice(-5)}) ${formatPrice(customer.metadata.total)}`}
+                    >
+                        <Paragraph>{`Completed (Delivery method: eTicket)`}</Paragraph>
+                        <Paragraph>{`Purchased by ${customer.metadata.firstName} ${customer.metadata.lastName} (${customer.metadata.emailAddress}) on ${date} `}</Paragraph>
+                    <Descriptions>
+                    
+                        <Descriptions.Item label="First Name">{`${customer.metadata.firstName}`}</Descriptions.Item>
+                        <Descriptions.Item label="Last Name">{`${customer.metadata.lastName}`}</Descriptions.Item>
 
-              </Card> */}
-              <Card title="Sales by Ticket Type">
-
-                {this.renderTicketTypes()}
-              </Card>
-              <Card
-                title="Sales analytics"
-                extra={
-                <Dropdown overlay={menu}>
-                    <MoreHorizontal size={20} strokeWidth={1} fill={theme.textColor} />
-                </Dropdown>
-                }
-                bodyStyle={{ padding: '1rem' }}
-                className="mb-4"
-              >
-                {/* <div></div> */}
-                <FlexibleWidthXYPlot onMouseLeave={this.onMouseLeave} height={340} xDistance={100}>
-                  <VerticalGridLines />
-                  <HorizontalGridLines />
-                  <XAxis />
-                  <YAxis />
-                  <LineSeries onNearestX={this.onNearestX} data={DATA[0]} />
-                  <LineSeries data={DATA[1]} />
-                  <Crosshair
-                    values={this.state.crosshairValues}
-                    className={'test-class-name'}
-                  />
-                </FlexibleWidthXYPlot>
-                <NoSSR>
-                <Legend>
-                    <DiscreteColorLegend width={180} height={20} items={series} />
-                    <MonthPicker placeholder="Select a month" />
-                </Legend>
-                <FlexibleWidthXYPlot xType="ordinal" height={340} xDistance={100}>
-                    <VerticalGridLines style={{ strokeWidth: 0.5 }} />
-                    <HorizontalGridLines style={{ strokeWidth: 0.5 }} />
-                    <XAxis style={{ strokeWidth: 0.5 }} />
-                    <YAxis style={{ strokeWidth: 0.5 }} />
-                    <VerticalBarSeries color="#007bff" data={series[0].data} />
-                    <VerticalBarSeries
-                    color="rgb(211, 232, 255)"
-                    data={series[1].data}
-                    />
-                </FlexibleWidthXYPlot>
-                </NoSSR>
-            </Card>
-            <Row gutter={16}>
+                        {/* <Table columns={ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} /> */}
+                    </Descriptions>
+                    <span>
+                        <Dropdown overlay={menu}>
+                            <Button>
+                            Actions <Icon type="down" />
+                            </Button>
+                        </Dropdown>
+                    </span>
+                </Card>
+                </Row>
+                {/* <Row gutter={16}>
                 <Col sm={24} md={8} className="mb-4">
                 <Card title="Stats" bodyStyle={{ padding: 0 }}>
                   <Row
@@ -661,7 +511,7 @@ padding: 0.5rem 0;
                 </Col>
                 <Col sm={24} md={8} className="mb-4">
                   <Card
-                      title="Collaborators"
+                      title="Activity"
                       extra={
                       <Dropdown overlay={menu}>
                           <MoreHorizontal
@@ -672,9 +522,6 @@ padding: 0.5rem 0;
                       </Dropdown>
                       }
                   >
-                      <Button type="primary">
-                        Add Collaborators
-                      </Button>
                       <Timeline
                       pending={<div className="ml-4">Activities pending...</div>}
                       className="mt-2"
@@ -722,11 +569,11 @@ padding: 0.5rem 0;
                       </Timeline>
                   </Card>
                   </Col>
-              </Row>
+              </Row> */}
             </>
         );
     }
   };
   
-  export default Manage;
+  export default Order;
   
