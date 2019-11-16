@@ -1,7 +1,7 @@
-import { createGlobalStyle } from 'styled-components';
-import lessToJs from 'less-vars-to-js';
-import { objectToCamelCase } from '../../lib/helpers';
-import paletteLess from '!!raw-loader!../../assets/antd-custom.less';
+import { createGlobalStyle } from "styled-components";
+import lessToJs from "less-vars-to-js";
+import { objectToCamelCase } from "../../lib/helpers";
+import paletteLess from "!!raw-loader!../../assets/antd-custom.less";
 
 const lessVariables = lessToJs(paletteLess, {
     resolveVariables: true,
@@ -62,7 +62,9 @@ const GlobalStyles = createGlobalStyle`
   a:hover {
     text-decoration: none;
   }
-
+  .ant-descriptions-item-label {
+    font-weight: bold;
+  }
   svg {
     overflow: hidden;
     vertical-align: middle;

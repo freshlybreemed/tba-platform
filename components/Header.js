@@ -1,4 +1,4 @@
-import { Avatar, Badge, Layout, List, Menu } from 'antd';
+import { Avatar, Badge, Layout, List, Menu } from "antd";
 import {
   BarChart,
   Bell,
@@ -7,40 +7,39 @@ import {
   Minimize,
   Settings,
   Triangle
-} from 'react-feather';
-import DashHeader, { Notification } from './styles/Header';
-import { connect } from 'react-redux';
+} from "react-feather";
+import DashHeader, { Notification } from "./styles/Header";
+import { connect } from "react-redux";
 
-import Link from 'next/link';
-import MockNotifications from '../demos/mock/notifications';
-import { useAppState } from './shared/AppProvider';
-import { useState } from 'react';
+import Link from "next/link";
+import MockNotifications from "../demos/mock/notifications";
+import { useAppState } from "./shared/AppProvider";
+import { useState } from "react";
 
-import Auth from '../lib/Auth';
+import Auth from "../lib/Auth";
 const auth = new Auth();
-
 
 const { SubMenu } = Menu;
 const { Header } = Layout;
 
 const handleLogin = () => {
-  auth.login()
-}
+  auth.login();
+};
 
 const handleLogout = () => {
-  auth.logout()
-}
+  auth.logout();
+};
 
 const isLoggedIn = () => {
-  if (typeof localStorage!=='undefined'){
-    var user_data = localStorage.getItem('user_details');
-    var isLoggedIn = localStorage.getItem('isLoggedIn');
+  if (typeof localStorage !== "undefined") {
+    var user_data = localStorage.getItem("user_details");
+    var isLoggedIn = localStorage.getItem("isLoggedIn");
     if (isLoggedIn && user_data) {
-      return true
+      return true;
     }
   }
-  return false
-}
+  return false;
+};
 const MainHeader = () => {
   const [state, dispatch] = useAppState();
   const [notifications] = useState(MockNotifications);
@@ -49,7 +48,7 @@ const MainHeader = () => {
       <Header>
         {state.mobile && (
           <a
-            onClick={() => dispatch({ type: 'mobileDrawer' })}
+            onClick={() => dispatch({ type: "mobileDrawer" })}
             className="trigger"
           >
             <BarChart size={20} strokeWidth={1} />
@@ -109,7 +108,7 @@ const MainHeader = () => {
 
         <Menu mode="horizontal">
           {!state.mobile && (
-            <Menu.Item onClick={() => dispatch({ type: 'fullscreen' })}>
+            <Menu.Item onClick={() => dispatch({ type: "fullscreen" })}>
               {!state.fullscreen ? (
                 <Maximize size={20} strokeWidth={1} />
               ) : (
@@ -117,7 +116,7 @@ const MainHeader = () => {
               )}
             </Menu.Item>
           )}
-          <Menu.Item onClick={() => dispatch({ type: 'options' })}>
+          <Menu.Item onClick={() => dispatch({ type: "options" })}>
             <Settings size={20} strokeWidth={1} />
           </Menu.Item>
           <SubMenu
@@ -131,7 +130,7 @@ const MainHeader = () => {
           >
             <Menu.Item
               className="p-0 bg-transparent"
-              style={{ height: 'auto' }}
+              style={{ height: "auto" }}
             >
               <List
                 className="header-notifications"
@@ -163,10 +162,13 @@ const MainHeader = () => {
                 <a>Help?</a>
               </Link>
             </Menu.Item>
-            {isLoggedIn() ?
-              <Menu.Item onClick={()=>handleLogout()}>Logout</Menu.Item>:
-              <Menu.Item onClick={()=>handleLogin()}>Login / Register</Menu.Item>
-            }
+            {isLoggedIn() ? (
+              <Menu.Item onClick={() => handleLogout()}>Logout</Menu.Item>
+            ) : (
+              <Menu.Item onClick={() => handleLogin()}>
+                Login / Register
+              </Menu.Item>
+            )}
           </SubMenu>
         </Menu>
       </Header>
@@ -174,5 +176,5 @@ const MainHeader = () => {
   );
 };
 
-console.log(isLoggedIn())
+console.log(isLoggedIn());
 export default connect()(MainHeader);

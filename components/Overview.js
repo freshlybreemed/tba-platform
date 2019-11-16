@@ -14,7 +14,7 @@ import {
   Trash,
   TrendingDown,
   TrendingUp
-} from 'react-feather';
+} from "react-feather";
 import {
   Avatar,
   Card,
@@ -30,7 +30,7 @@ import {
   Row,
   Timeline,
   Typography
-} from 'antd';
+} from "antd";
 import {
   DiscreteColorLegend,
   FlexibleWidthXYPlot,
@@ -39,15 +39,15 @@ import {
   VerticalGridLines,
   XAxis,
   YAxis
-} from 'react-vis';
+} from "react-vis";
 
-
-import NoSSR from 'react-no-ssr';
-import PostCard from './shared/PostCard';
-import StatCard from './shared/StatCard';
-import WeatherCard from './shared/WeatherCard';
-import styled from 'styled-components';
-import { theme } from './styles/GlobalStyles';
+import { connect } from "react-redux";
+import NoSSR from "react-no-ssr";
+import PostCard from "./shared/PostCard";
+import StatCard from "./shared/StatCard";
+import WeatherCard from "./shared/WeatherCard";
+import styled from "styled-components";
+import { theme } from "./styles/GlobalStyles";
 
 const { MonthPicker } = DatePicker;
 const { Title, Paragraph, Text } = Typography;
@@ -65,11 +65,11 @@ const generate = () => {
 
 const series = [
   {
-    title: 'Views',
+    title: "Views",
     data: generate()
   },
   {
-    title: 'Sales',
+    title: "Sales",
     data: generate()
   }
 ];
@@ -93,7 +93,7 @@ const menu = (
   <Menu>
     <Menu.Item>
       <Row type="flex" align="middle">
-        <Archive size={16} strokeWidth={1} className="mr-3" />{' '}
+        <Archive size={16} strokeWidth={1} className="mr-3" />{" "}
         <span>Archive</span>
       </Row>
     </Menu.Item>
@@ -115,7 +115,7 @@ const menu = (
     </Menu.Item>
     <Menu.Item>
       <Row type="flex" align="middle">
-        <Printer size={16} strokeWidth={1} className="mr-3" />{' '}
+        <Printer size={16} strokeWidth={1} className="mr-3" />{" "}
         <span>Print</span>
       </Row>
     </Menu.Item>
@@ -124,7 +124,7 @@ const menu = (
 
 const data = [
   {
-    title: 'Click through ratio',
+    title: "Click through ratio",
     subtitle: (
       <span>
         <span className="mr-1">15%</span>
@@ -133,7 +133,7 @@ const data = [
     )
   },
   {
-    title: 'Cost per thousand',
+    title: "Cost per thousand",
     subtitle: (
       <span>
         <span className="mr-1">$320.89</span>
@@ -142,7 +142,7 @@ const data = [
     )
   },
   {
-    title: 'Bounce rate',
+    title: "Bounce rate",
     subtitle: (
       <span>
         <span className="mr-1">34%</span>
@@ -163,29 +163,26 @@ const TimelinePeriod = ({ content }) => (
   </small>
 );
 
-const Overview = ({data}) => {
+const Overview = ({ data }) => {
   // console.log(data)
   return (
     <div>
-      <Card
-        bodyStyle={{ padding: '1rem' }}
-        className="mb-4"
-      >
+      <Card bodyStyle={{ padding: "1rem" }} className="mb-4">
         <Typography>
           <Title>Welcome to TBA</Title>
           <br />
           <Paragraph>
-            A new way to connect the community with experiences. In the process of internal desktop applications development, many different design specs and
-            implementations would be involved, which might cause designers and developers difficulties and
-            duplication and reduce the efficiency of development.
+            A new way to connect the community with experiences. In the process
+            of internal desktop applications development, many different design
+            specs and implementations would be involved, which might cause
+            designers and developers difficulties and duplication and reduce the
+            efficiency of development.
           </Paragraph>
           <br />
- 
         </Typography>
         <Button href="/create">Create an Event</Button>
-
       </Card>
-{/* 
+      {/* 
       <Row gutter={16}>
         <Col sm={24} md={8} className="mb-4">
           <Card bodyStyle={{ padding: 0 }}>
@@ -382,4 +379,4 @@ const Overview = ({data}) => {
   );
 };
 
-export default Overview;
+export default connect()(Overview);

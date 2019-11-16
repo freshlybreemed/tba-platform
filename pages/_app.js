@@ -1,27 +1,27 @@
-import '../assets/styles.less';
+import "../assets/styles.less";
 
-import App from 'next/app';
-import { Provider, connect } from 'react-redux';
+import App from "next/app";
+import { Provider, connect } from "react-redux";
 
-import AppProvider from '../components/shared/AppProvider';
-import {createStore} from "redux";
-import { GlobalStyles } from '../components/styles/GlobalStyles';
-import Head from 'next/head';
-import NProgress from 'nprogress';
-import Page from '../components/Page';
-import Router from 'next/router';
+import AppProvider from "../components/shared/AppProvider";
+import { createStore } from "redux";
+import { GlobalStyles } from "../components/styles/GlobalStyles";
+import Head from "next/head";
+import NProgress from "nprogress";
+import Page from "../components/Page";
+import Router from "next/router";
 import withRedux from "next-redux-wrapper";
 import { makeStore } from "../lib/store";
 
-Router.events.on('routeChangeStart', () => NProgress.start());
-Router.events.on('routeChangeComplete', () => NProgress.done());
-Router.events.on('routeChangeError', () => NProgress.done());
+Router.events.on("routeChangeStart", () => NProgress.start());
+Router.events.on("routeChangeComplete", () => NProgress.done());
+Router.events.on("routeChangeError", () => NProgress.done());
 
 class MyApp extends App {
   static async getInitialProps({ Component, ctx, req }) {
     let pageProps = {};
     const userAgent = ctx.req
-      ? ctx.req.headers['user-agent']
+      ? ctx.req.headers["user-agent"]
       : navigator.userAgent;
 
     let ie = false;
@@ -39,7 +39,6 @@ class MyApp extends App {
 
   render() {
     const { Component, pageProps, store } = this.props;
-
     return (
       <>
         <GlobalStyles />
@@ -62,9 +61,9 @@ class MyApp extends App {
         </Head>
         <Provider store={store}>
           <AppProvider>
-              <Page>
-                <Component {...pageProps} />
-              </Page>
+            <Page>
+              <Component {...pageProps} />
+            </Page>
           </AppProvider>
         </Provider>
       </>

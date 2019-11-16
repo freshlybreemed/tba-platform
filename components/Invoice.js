@@ -1,33 +1,87 @@
-import { Button, Card, Col, Divider, Row } from 'antd';
+import { Button, Card, Col, Divider, Icon, Row } from "antd";
 
-import MockInvoice from '../demos/mock/invoice';
-import { formatPrice } from '../lib/helpers';
-import { connect } from 'react-redux';
-import { STATUS_CODES } from 'http';
+import ExpenseCreation from "./ExpenseCreation";
+import MockInvoice from "../demos/mock/invoice";
+import { formatPrice } from "../lib/helpers";
+import { connect } from "react-redux";
+import { STATUS_CODES } from "http";
 
-const Invoice = (props) => {
-  console.log(props)
-  const event = props.event
-  const { user } = props
+const Invoice = props => {
+  console.log(props);
+  const { user, event, selectedEvent } = props;
   const tax = 15;
   const getSubTotal = () =>
-    invoice.reduce((sum, item) => sum + item.quantity * (item.price+ item.fees), 0);
+    invoice.reduce(
+      (sum, item) => sum + item.quantity * (item.price + item.fees),
+      0
+    );
 
   const getCalculatedTax = () => (tax * getSubTotal()) / 100;
-  const getFreshlyTax = () => 
-    -invoice.reduce((sum, item) => sum + item.quantity * item.fees, 0)
-  
+  const getFreshlyTax = () =>
+    -invoice.reduce((sum, item) => sum + item.quantity * item.fees, 0);
+
   const getTotal = () => getSubTotal() + getCalculatedTax();
-  const ticketTypes = Object.keys(event.ticketTypes)
+  const ticketTypes = Object.keys(event.ticketTypes);
   const invoice = ticketTypes.map(ticket => {
     return {
       title: ticket,
-      subtitle: 'Tickets sold',
+      subtitle: "Tickets sold",
       price: event.ticketTypes[ticket].price,
-      quantity: -event.ticketTypes[ticket].currentQuantity + event.ticketTypes[ticket].startingQuantity,
+      quantity:
+        -event.ticketTypes[ticket].currentQuantity +
+        event.ticketTypes[ticket].startingQuantity,
       fees: event.ticketTypes[ticket].fees
+    };
+  });
+
+  const renderExpenses = () => {
+    const { selectedEvent } = props;
+    const { expenses } = selectedEvent;
+    const expenseRender = [];
+    console.log("Object.keys(expenses)", expenses);
+    // if (Object.keys(expenses).length > 0) {
+    //   expenseRender.push(
+    //     <>
+    //       <Row
+    //         type="flex"
+    //         justify="space-between"
+    //         align="middle"
+    //         className="py-4"
+    //       >
+    //         <br />
+    //         <small className="mr-auto text-muted">{`Expenses`}</small>
+    //         <span className="text-right">
+    //           {formatPrice(expenses[expense].price)}
+    //         </span>
+    //       </Row>
+    //       <Divider className="m-0" />
+    //     </>
+    //   );
+    // }
+    for (var expense in expenses) {
+      expenseRender.push(
+        <>
+          <Row
+            type="flex"
+            justify="space-between"
+            align="middle"
+            className="py-4"
+          >
+            <Icon type="edit" />
+            <small className="mr-auto text-muted">{`${expenses[expense].type}`}</small>
+            <span>
+              <small className="text-muted">{`${expense}`} </small>
+            </span>
+            <span className="text-right">
+              {formatPrice(expenses[expense].price)}
+            </span>
+          </Row>
+          <Divider className="m-0" />
+        </>
+      );
     }
-  })
+    return expenseRender;
+  };
   return (
     <>
       <Card
@@ -42,16 +96,18 @@ const Invoice = (props) => {
               <Col>
                 <ul className="list-unstyled">
                   <li>{event.organizer}</li>
-                  <li>Austin Walker</li>
+                  <li>{user.nickname}</li>
                   <li>{user.email}</li>
                 </ul>
                 <ul className="list-unstyled">
-                  <li>{event.location.name.split(',')[0]}</li>
+                  <li>{event.location.name.split(",")[0]}</li>
                   <li>{event.location.streetAddress}</li>
-                  <li>{event.location.city}, {event.location.state}, {event.location.postalCode}</li>
+                  <li>
+                    {event.location.city}, {event.location.state},{" "}
+                    {event.location.postalCode}
+                  </li>
                   <li>United States of America</li>
                 </ul>
-              
               </Col>
               <Col className="text-right">
                 <ul className="list-unstyled">
@@ -108,23 +164,26 @@ const Invoice = (props) => {
                         display: block;
                       `}
                     >
-                      {item.subtitle}
+                      {/* {item.subtitle} */}
                       {item.quantity && (
                         <span>
                           &nbsp;*&nbsp;
-                          {item.quantity}
+                          {item.quantity} Sold
                         </span>
                       )}
                     </small>
                   </div>
                   <div className="text-right">
-                    <span>{formatPrice((item.price+ item.fees) * item.quantity)}</span>
+                    <span>
+                      {formatPrice((item.price + item.fees) * item.quantity)}
+                    </span>
                   </div>
                 </Row>
                 <Divider className="m-0" />
               </div>
             ))}
             <Divider className="m-0" />
+            {renderExpenses()}
             <Row>
               <div
                 className="ml-auto"
@@ -152,10 +211,9 @@ const Invoice = (props) => {
                   align="middle"
                   className="py-4"
                 >
-                  <span>TBA </span>
-                  <small className="mr-auto text-muted">- Service Fees</small>
+                  <small className="mr-auto text-muted">Service Fees</small>
                   <span className="text-right">
-                    {formatPrice(getFreshlyTax())}
+                    {formatPrice(getFreshlyTax() * 0.32)}
                   </span>
                 </Row>
                 <Divider className="m-0" />
@@ -165,10 +223,11 @@ const Invoice = (props) => {
                   align="middle"
                   className="py-4"
                 >
-                  <span>TBA </span>
-                  <small className="mr-auto text-muted">- Payment Processing Fees</small>
+                  <small className="mr-auto text-muted">
+                    Payment Processing Fees
+                  </small>
                   <span className="text-right">
-                    {formatPrice(getFreshlyTax())}
+                    {formatPrice(getFreshlyTax() * 0.68)}
                   </span>
                 </Row>
                 <Divider className="m-0" />
@@ -210,22 +269,20 @@ const Invoice = (props) => {
                 <Divider className="m-0 bg-primary" />
               </div>
             </Row>
+            <ExpenseCreation />
           </div>
         </div>
       </Card>
 
-      <div className="my-5 text-center">
-        <Button type="primary" className="px-5">
-          Pay Now
-        </Button>
-      </div>
+      <div className="my-5 text-center"></div>
     </>
   );
 };
 
-export default connect((state)=>{
+export default connect(state => {
   return {
     myEvents: state.myEvents,
-    user: state.user
-  }
+    user: state.user,
+    selectedEvent: state.selectedEvent
+  };
 })(Invoice);
