@@ -8,7 +8,7 @@ import axios from "axios";
 const FormItem = Form.Item;
 const { Option } = Select;
 
-class AccountSettings extends Component {
+class PayoutSettings extends Component {
   constructor(props) {
     super(props);
   }
@@ -386,5 +386,5 @@ export default connect(mapStateToProps)(
         }
       };
     }
-  })(AccountSettings)
+  })(PayoutSettings)
 );

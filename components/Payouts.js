@@ -111,7 +111,7 @@ const getPayouts = events => {
       })
     );
   });
-  console.log(payouts);
+  console.log(events);
   return payouts;
 };
 
@@ -302,4 +302,8 @@ class Payouts extends React.Component {
   }
 }
 
-export default connect()(Payouts);
+export default connect(state => {
+  return {
+    events: state.myEvents
+  };
+})(Payouts);

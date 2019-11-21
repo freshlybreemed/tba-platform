@@ -5,37 +5,30 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 // import MyEvents from '../../components/MyEvents';
-import Payouts from "../../components/Payouts";
+import PayoutSettings from "../../components/PayoutSettings";
 import fetch from "isomorphic-unfetch";
 import { AUTH_CONFIG } from "../../lib/auth0-variables";
 
 const host = AUTH_CONFIG.host;
-class PayoutsPage extends Component {
+class PayoutSettingsPage extends Component {
   static propTypes = {
-    events: PropTypes.array,
+    evenuserts: PropTypes.obj,
     dispatch: PropTypes.func
   };
-  constructor(props) {
-    super(props);
-    this.state = {
-      events: [],
-      loading: true
-    };
-  }
 
   render() {
     return (
       <>
         <Head>
           <meta property="og:title" content="My Events" />
-          <title>My Events</title>
+          <title>Payout Settings</title>
         </Head>
-        <Payouts loading={this.state.loading} events={this.props.events} />
+        <PayoutSettings user={this.props.user} />
       </>
     );
   }
 }
 
-const mapStateToProps = state => ({ events: state.myEvents });
+const mapStateToProps = state => ({ user: state.user });
 
-export default connect(mapStateToProps)(PayoutsPage);
+export default connect(mapStateToProps)(PayoutSettingsPage);

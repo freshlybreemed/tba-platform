@@ -170,7 +170,11 @@ class MyEvents extends React.Component {
                 <Col span={17}>
                   <Text strong>{text}</Text>
                   <br />
-                  <Text>{event.location.name.split(",")[0]}</Text>
+                  <Text>
+                    {event.location.name
+                      ? event.location.name.split(",")[0]
+                      : "TBD"}
+                  </Text>
                   <br />
                   <Text>{getTime(event.startDate)}</Text>
                 </Col>

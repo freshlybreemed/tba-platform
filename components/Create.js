@@ -289,11 +289,6 @@ class Create extends React.Component {
     this.setState({ autoCompleteResult });
   };
 
-  handleTimeChange(end, start, val) {
-    this.setState({ isBefore: end.isAfter(start) }, () =>
-      console.log(this.state.isBefore)
-    );
-  }
   render() {
     const ReactQuill = this.quill;
     const {
@@ -414,7 +409,9 @@ class Create extends React.Component {
                       );
                     })}
                   </div>
-                  <Checkbox>The event's location is TBD</Checkbox>
+                  <Checkbox onClick={e => console.log(e)}>
+                    The event's location is TBD
+                  </Checkbox>
                 </div>
               )}
             </PlacesAutocomplete>

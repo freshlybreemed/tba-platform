@@ -27,6 +27,7 @@ import {
   DatePicker,
   Descriptions,
   Divider,
+  Drawer,
   Dropdown,
   Empty,
   Icon,
@@ -44,25 +45,13 @@ import {
   Timeline,
   Typography
 } from "antd";
-import {
-  DiscreteColorLegend,
-  FlexibleWidthXYPlot,
-  HorizontalGridLines,
-  VerticalBarSeries,
-  VerticalGridLines,
-  XAxis,
-  YAxis
-} from "react-vis";
+
 import axios from "axios";
 import { formatPrice } from "../lib/helpers";
 
 import { Component } from "react";
 import { withRouter } from "next/router";
 import Link from "next/link";
-import NoSSR from "react-no-ssr";
-import PostCard from "./shared/PostCard";
-import StatCard from "./shared/StatCard";
-import WeatherCard from "./shared/WeatherCard";
 import styled from "styled-components";
 import { theme } from "./styles/GlobalStyles";
 import { isMobile } from "react-device-detect";
@@ -141,7 +130,7 @@ const getTime = datetime => {
   }
   var month = months[dateTime.getMonth()];
   var year = dateTime.getFullYear();
-  return day + ", " + month + " " + date;
+  return `${day}, ${month} ${date}  ${hr}:${min} ${ampm}`;
 };
 
 const getTixQuantity = metadata => {
@@ -166,26 +155,10 @@ const getTixQuantity = metadata => {
   return quantity;
 };
 
-const getPercentage = event => {
-  let total = 0;
-  let sold = 0;
-  for (var ticketType in event.ticketTypes) {
-    if (parseInt(event.ticketTypes[ticketType].currentQuantity) === 0) {
-      sold += parseInt(event.ticketTypes[ticketType].startingQuantity);
-    } else {
-      sold +=
-        parseInt(event.ticketTypes[ticketType].startingQuantity) -
-        parseInt(event.ticketTypes[ticketType].currentQuantity);
-    }
-    total += parseInt(event.ticketTypes[ticketType].startingQuantity);
-  }
-  return parseInt((sold / total) * 100);
-};
-
-const handleRefund = async charge => {
+const handleRefund = async (charge, id) => {
   console.log("charging");
   await axios
-    .put(`${host}/api/refund/${charge}`)
+    .put(`${host}/api/refund/${charge}/${id}`)
     .then(res => {
       console.log(res.data);
     })
@@ -195,21 +168,6 @@ const handleRefund = async charge => {
   console.log("charging");
 };
 
-// const showDeleteConfirm = () => {
-//   confirm({
-//     title: "Are you sure delete this task?",
-//     content: "Some descriptions",
-//     okText: "Yes",
-//     okType: "danger",
-//     cancelText: "No",
-//     onOk() {
-//       console.log("OK");
-//     },
-//     onCancel() {
-//       console.log("Cancel");
-//     }
-//   });
-// };
 const payoutsDesktopColumns = [
   {
     title: "Initiated On",
@@ -430,7 +388,19 @@ const TimelinePeriod = ({ content }) => (
 class Order extends Component {
   constructor(props) {
     super(props);
+    this.state = { visible: false };
   }
+  showDrawer = () => {
+    this.setState({
+      visible: true
+    });
+  };
+
+  onClose = () => {
+    this.setState({
+      visible: false
+    });
+  };
   componentWillMount = () => {
     console.log(this.props);
     this.salesData();
@@ -523,21 +493,25 @@ class Order extends Component {
               .slice(-5)}) ${formatPrice(customer.metadata.total)}`}
           >
             <Paragraph>{`Completed (Delivery method: eTicket)`}</Paragraph>
-            <Paragraph>{`Purchased by ${customer.metadata.firstName} ${customer.metadata.lastName} (${customer.metadata.emailAddress}) on ${date} `}</Paragraph>
+            <Paragraph>{`Purchased by ${customer.metadata.firstName} ${
+              customer.metadata.lastName
+            } (${customer.metadata.emailAddress}) on ${getTime(
+              date
+            )} `}</Paragraph>
             <Descriptions>
               <Descriptions.Item label="First Name">{`${customer.metadata.firstName}`}</Descriptions.Item>
               <Descriptions.Item label="Last Name">{`${customer.metadata.lastName}`}</Descriptions.Item>
+              <Descriptions.Item label="Email Address">{`${customer.metadata.emailAddress}`}</Descriptions.Item>
               <Descriptions.Item label="Status">{`${customer.metadata.status}`}</Descriptions.Item>
+              <Descriptions.Item label="Email Status">{`${
+                customer.guestInfo[0].dispatched_at
+                  ? `Sent @ ${getTime(customer.guestInfo[0].dispatched_at)}`
+                  : "Not Sent Yet"
+              }`}</Descriptions.Item>
 
               {/* <Table columns={ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} /> */}
             </Descriptions>
             <span>
-              {/* <Popconfirm
-                onConfirm={this.confirm}
-                title="Are you sure？"
-                okText="Yes"
-                cancelText="No"
-              > */}
               <Button
                 onClick={() => {
                   confirm({
@@ -550,7 +524,7 @@ class Order extends Component {
                     cancelText: "No",
                     onOk() {
                       console.log("OK");
-                      handleRefund(customer.id);
+                      handleRefund(customer.id, event._id);
                     },
                     onCancel() {
                       console.log("Cancel");
@@ -561,26 +535,15 @@ class Order extends Component {
               >
                 Refund
               </Button>
-              {/* </Popconfirm> */}
-              <Button
-                onClick={() => {
-                  confirm({
-                    title: "Are you sure refund this ticket?",
-                    content: "Some descriptions",
-                    okText: "Yes",
-                    okType: "danger",
-                    cancelText: "No",
-                    onOk() {
-                      handleRefund(customer.id);
-                      console.log("OK");
-                    },
-                    onCancel() {
-                      console.log("Cancel");
-                    }
-                  });
-                }}
-                style={{ marginRight: 8 }}
+              <Drawer
+                title="Create a new account"
+                width={720}
+                onClose={this.onClose}
+                visible={this.state.visible}
               >
+                Fuck
+              </Drawer>
+              <Button onClick={this.showDrawer} style={{ marginRight: 8 }}>
                 Edit Info
               </Button>
               <Button style={{ marginRight: 8 }}>Resend Ticket</Button>

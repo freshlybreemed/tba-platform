@@ -33,6 +33,7 @@ import {
   Icon,
   List,
   message,
+  Modal,
   Progress,
   Row,
   Statistic,
@@ -56,9 +57,11 @@ import {
 } from "react-vis";
 import { Component } from "react";
 import { withRouter } from "next/router";
+
 import Link from "next/link";
 import NoSSR from "react-no-ssr";
 import PostCard from "./shared/PostCard";
+import TeamMemberCreation from "./TeamMemberCreation";
 import StatCard from "./shared/StatCard";
 import WeatherCard from "./shared/WeatherCard";
 import styled from "styled-components";
@@ -70,22 +73,10 @@ import event from "../lib/event";
 
 const host = AUTH_CONFIG.host;
 
-const { Paragraph } = Typography;
-const { MonthPicker } = DatePicker;
-const { Title, Text } = Typography;
+const { Paragraph, Title, Text } = Typography;
 
 const axes = Array.from(Array(12).keys());
-const DATA = [
-  [
-    { x: 1, y: 10 },
-    { x: 2, y: 7 },
-    { x: 3, y: 8 },
-    { x: 4, y: 4 },
-    { x: 5, y: 5.2 },
-    { x: 6, y: 10 }
-  ],
-  [{ x: 1, y: 20 }, { x: 2, y: 5 }, { x: 3, y: 15 }]
-];
+
 const generate = () => {
   let arr = [];
   axes.map(x => {
@@ -264,7 +255,9 @@ const ordersDesktopColumns = [
     title: "Total",
     dataIndex: "total",
     key: "total",
-    render: total => `$${total}`
+    render: (total, order) => {
+      return `$${total}`;
+    }
   }
   // {
   //   title: 'Action',
@@ -410,7 +403,8 @@ class Manage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      crosshairValues: []
+      crosshairValues: [],
+      visible: false
     };
   }
   componentWillMount = () => {
@@ -443,6 +437,7 @@ class Manage extends Component {
             ].indexOf(ticketType) > -1
           )
             continue;
+          if (ticket.metadata.status === "refunded") continue;
           totalTicketCount += parseInt(ticket.metadata[ticketType]);
           totalBalance +=
             ticketTypes[ticketType].price *
@@ -461,6 +456,15 @@ class Manage extends Component {
       },
       () => console.log(this.state)
     );
+  };
+  showModal = () => {
+    this.setState({ visible: true });
+  };
+  handleCancel = () => {
+    this.setState({ visible: false });
+  };
+  handleCreate = () => {
+    this.setState({ visible: false });
   };
   renderTicketTypes = () => {
     let ticketTypes = this.props.event.ticketTypes;
@@ -494,6 +498,7 @@ class Manage extends Component {
       );
     });
   };
+
   renderRecentOrders = () => {
     let recentOrders = [];
 
@@ -515,7 +520,9 @@ class Manage extends Component {
         )}`,
         age: getTixQuantity(person.metadata),
         date: getTime(date),
-        total: `${(person.amount / 100).toFixed(2)}`,
+        total: person.amount_refunded
+          ? `-(${(person.amount / 100).toFixed(2)})`
+          : `${(person.amount / 100).toFixed(2)}`,
         eventId: event._id
       });
       count++;
@@ -523,14 +530,69 @@ class Manage extends Component {
     }
     return recentOrders;
   };
+  renderGraph = () => {
+    let render = this.props.event.tickets.map(order => {
+      return {
+        x: new Date(
+          `${new Date(order.created * 1000).getMonth().toString()}/${new Date(
+            order.created * 1000
+          )
+            .getDate()
+            .toString()}/${new Date(order.created * 1000)
+            .getFullYear()
+            .toString()}`
+        ),
+        y: (order.amount - order.amount_refunded) / 100
+      };
+    });
+    const days = {};
+    render.forEach((item, index, object) => {
+      days[item.x] = days[item.x] ? days[item.x] + item.y : item.y;
+    });
+    let graph = [];
+    for (var day in days) {
+      graph.push({
+        x: new Date(day),
+        y: days[day]
+      });
+    }
+    Date.prototype.addDays = function(days) {
+      var date = new Date(this.valueOf());
+      date.setDate(date.getDate() + days);
+      return date;
+    };
+
+    var dateArray = new Array();
+    for (var metric in graph) {
+      dateArray.push(graph[metric]);
+      const metrica = parseInt(metric) + 1;
+      if (graph[metrica]) {
+        var currentDate = graph[metrica].x;
+        const array = [];
+        while (currentDate < graph[metric].x) {
+          currentDate = currentDate.addDays(1);
+          if (currentDate.getTime() !== graph[metric].x.getTime()) {
+            array.push({
+              x: new Date(currentDate),
+              y: 0
+            });
+          }
+        }
+        dateArray = dateArray.concat(array.reverse());
+      }
+    }
+
+    return [dateArray];
+  };
   onNearestX = (value, { index }) => {
-    this.setState({ crosshairValues: DATA.map(d => d[index]) });
+    this.setState({ crosshairValues: this.renderGraph().map(d => d[index]) });
   };
   onMouseLeave = () => {
     this.setState({ crosshairValues: [] });
   };
   render = () => {
     const { event } = this.props;
+    const { visible } = this.state;
     const customizeRenderEmpty = type => (
       <>
         <Empty
@@ -629,37 +691,25 @@ class Manage extends Component {
           bodyStyle={{ padding: "1rem" }}
           className="mb-4"
         >
-          {/* <div></div> */}
-          <FlexibleWidthXYPlot
-            onMouseLeave={this.onMouseLeave}
-            height={340}
-            xDistance={100}
-          >
-            <VerticalGridLines />
-            <HorizontalGridLines />
-            <XAxis />
-            <YAxis />
-            <LineSeries onNearestX={this.onNearestX} data={DATA[0]} />
-            <LineSeries data={DATA[1]} />
-            <Crosshair
-              values={this.state.crosshairValues}
-              className={"test-class-name"}
-            />
-          </FlexibleWidthXYPlot>
           <NoSSR>
-            <Legend>
-              <DiscreteColorLegend width={180} height={20} items={series} />
-              <MonthPicker placeholder="Select a month" />
-            </Legend>
-            <FlexibleWidthXYPlot xType="ordinal" height={340} xDistance={100}>
-              <VerticalGridLines style={{ strokeWidth: 0.5 }} />
-              <HorizontalGridLines style={{ strokeWidth: 0.5 }} />
-              <XAxis style={{ strokeWidth: 0.5 }} />
-              <YAxis style={{ strokeWidth: 0.5 }} />
-              <VerticalBarSeries color="#007bff" data={series[0].data} />
-              <VerticalBarSeries
-                color="rgb(211, 232, 255)"
-                data={series[1].data}
+            <FlexibleWidthXYPlot
+              xType="time"
+              onMouseLeave={this.onMouseLeave}
+              height={340}
+              xDistance={100}
+            >
+              <VerticalGridLines />
+              <HorizontalGridLines />
+              <XAxis />
+              <YAxis tickFormat={v => `$${v}`} />
+              <LineSeries
+                onNearestX={this.onNearestX}
+                data={this.renderGraph()[0]}
+              />
+              <LineSeries data={this.renderGraph()[0]} />
+              <Crosshair
+                values={this.state.crosshairValues}
+                className={"test-class-name"}
               />
             </FlexibleWidthXYPlot>
           </NoSSR>
@@ -757,7 +807,7 @@ class Manage extends Component {
           </Col>
           <Col sm={24} md={8} className="mb-4">
             <Card
-              title="Collaborators"
+              title="Team Members"
               extra={
                 <Dropdown overlay={menu}>
                   <MoreHorizontal
@@ -768,11 +818,8 @@ class Manage extends Component {
                 </Dropdown>
               }
             >
-              <Button type="primary">Add Collaborators</Button>
-              <Timeline
-                pending={<div className="ml-4">Activities pending...</div>}
-                className="mt-2"
-              >
+              <TeamMemberCreation />
+              <Timeline className="mt-2">
                 <Timeline.Item
                   dot={<Avatar size={24} src="/static/images/face1.jpg" />}
                 >

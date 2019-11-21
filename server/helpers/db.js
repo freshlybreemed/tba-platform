@@ -1,33 +1,38 @@
 // Import dependencies
-const MongoClient = require('mongodb').MongoClient
-const url = require('url')
+const MongoClient = require("mongodb").MongoClient;
+const url = require("url");
 
 // Create cached connection variable
-let cachedDb = null
+let cachedDb = null;
 
 module.exports = async () => {
   // If the database connection is cached,
   // use it instead of creating a new connection
   if (cachedDb) {
-    return cachedDb
+    return cachedDb;
   }
 
   // Prepare variable for client connection
-  let client
+  let client;
 
   // If no connection is cached, create a new one
   // Error if the client connection fails
   try {
-  client = await MongoClient.connect(process.env.MONGO, { useNewUrlParser: true })
+    client = await MongoClient.connect(process.env.MONGO, {
+      useNewUrlParser: true
+    });
+    console.log("mongo", process.env.MONGO);
   } catch (err) {
-    throw new Error('[MongoDB] Connection Error: ' + err)
+    throw new Error("[MongoDB] Connection Error: " + err);
   }
 
   // Select the database through the connection,
   // using the database path of the connection string
-  const database = await client.db(url.parse(process.env.MONGO).pathname.substr(1))
+  const database = await client.db(
+    url.parse(process.env.MONGO).pathname.substr(1)
+  );
 
   // Cache the database connection and return the connection
-  cachedDb = database
-  return database
-}
+  cachedDb = database;
+  return database;
+};

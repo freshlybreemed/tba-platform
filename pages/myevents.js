@@ -23,6 +23,8 @@ class MyEventsPage extends Component {
   }
 
   async componentDidMount() {
+    const { user } = this.props;
+
     var user_data = localStorage.getItem("user_details");
     var isLoggedIn = localStorage.getItem("isLoggedIn");
     const data = JSON.parse(user_data);
@@ -30,12 +32,8 @@ class MyEventsPage extends Component {
       console.log(`logged in `);
       const res = await fetch(`${host}/api/events/${data.sub}`);
       const resUser = await fetch(`${host}/api/user/${data.sub}`);
-      const user = await resUser.json();
       const events = await res.json();
-      this.props.dispatch({
-        type: "fetch_user",
-        payload: user[0]
-      });
+
       this.props.dispatch({
         type: "fetch_events",
         payload: events
@@ -59,6 +57,6 @@ class MyEventsPage extends Component {
   }
 }
 
-const mapStateToProps = state => ({ events: state.myEvents });
+const mapStateToProps = state => ({ user: state.user, events: state.myEvents });
 
 export default connect(mapStateToProps)(MyEventsPage);
