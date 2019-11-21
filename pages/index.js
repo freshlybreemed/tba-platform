@@ -1,34 +1,18 @@
 /* eslint-disable react/react-in-jsx-scope */
-import Head from 'next/head';
-import Overview from '../components/Overview';
-import fetch from 'isomorphic-unfetch'
-import { connect } from 'react-redux';
+import Head from "next/head";
+import Overview from "../components/Overview";
+import fetch from "isomorphic-unfetch";
+import { connect } from "react-redux";
+import { AUTH_CONFIG } from "../lib/auth0-variables";
 
-class OverviewPage extends React.Component  {
-  constructor(props){
-    super(props)
-  }
-   componentDidMount(){
-    const { user } = this.props
-    var user_data = localStorage.getItem('user_details');
-    var isLoggedIn = localStorage.getItem('isLoggedIn');
-    const data = JSON.parse(user_data)
-    if (isLoggedIn && !user.sub){
-        console.log(`logged in `)
-        this.props.dispatch({
-            type: 'fetch_user',
-            payload: data
-        })
-    }
-    else {
-      if (!user.sub) {
-        console.log('not logged in')
-      }
-        this.setState({loading: false})
-    }  
+const host = AUTH_CONFIG.host;
+
+class OverviewPage extends React.Component {
+  constructor(props) {
+    super(props);
   }
 
-  render(){
+  render() {
     return (
       <>
         <Head>
@@ -39,8 +23,8 @@ class OverviewPage extends React.Component  {
     );
   }
 }
-export default connect((state)=>{
+export default connect(state => {
   return {
     user: state.user
-  }
-})(OverviewPage)
+  };
+})(OverviewPage);

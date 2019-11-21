@@ -26,7 +26,7 @@
     "mongodb": "^3.0.11",
     "multer": "^1.4.2",
     "multiparty": "^4.2.1",
-    "next": "^9.0.6",
+    "next": "^9.1.4",
     "next-redux-wrapper": "^3.0.0",
     "node-pre-gyp": "^0.13.0",
     "postcss-calc": "^7.0.1",
@@ -82,8 +82,7 @@
   "scripts": {
     "dev": "NODE_ENV=dev node server.js",
     "build": "next build",
-    "start": "next start",
-    "now-build": "NODE_OPTIONS=--max_old_space_size=8192 next build"
+    "start": "next start"
   },
   "husky": {
     "hooks": {

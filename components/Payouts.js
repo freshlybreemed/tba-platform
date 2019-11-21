@@ -3,6 +3,7 @@ import Link from "next/link";
 import { isMobile } from "react-device-detect";
 import { connect } from "react-redux";
 import axios from "axios";
+import { formatPrice } from "../lib/helpers";
 
 import {
   Avatar,
@@ -96,6 +97,23 @@ const customizeRenderLoading = () => (
     <Spin size="large" />
   </>
 );
+const getPayouts = events => {
+  const payoutEvents = events.filter(event => {
+    return event.payouts;
+  });
+
+  const payouts = [];
+  payoutEvents.forEach(event => {
+    payouts.push(
+      Object.assign({}, ...event.payouts, {
+        title: event.title,
+        _id: event._id
+      })
+    );
+  });
+  console.log(events);
+  return payouts;
+};
 
 const getPercentage = ticket => {
   let total = 0;
@@ -150,281 +168,52 @@ class Payouts extends React.Component {
 
   render() {
     const { events, loading, dispatch } = this.props;
-    console.log(events);
-    const desktopColumns = [
-      {
-        title: "Event",
-        dataIndex: "title",
-        render: (text, event) => {
-          return (
-            <>
-              <Row gutter={8}>
-                <Col span={7}>
-                  <Avatar
-                    shape="square"
-                    size={64}
-                    src={event.image}
-                    icon="user"
-                  />
-                </Col>
-                <Col span={17}>
-                  <Text strong>{text}</Text>
-                  <br />
-                  <Text>{event.location.name.split(",")[0]}</Text>
-                  <br />
-                  <Text>{getTime(event.startDate)}</Text>
-                </Col>
-              </Row>
-            </>
-          );
-        }
-      },
-      {
-        title: "Tickets Sold",
-        dataIndex: "percentage",
-        render: (tickets, event) => {
-          const data = getPercentage(event);
-          return (
-            <>
-              <Text type="secondary">{`${data.sold}/${data.total}`}</Text>
-              <Progress percent={data.percent} size="small" status="active" />
-            </>
-          );
-        }
-      },
-      {
-        title: "Gross",
-        dataIndex: "gross",
-        key: "name",
-        render: (text, event) => <>{getGross(event)}</>
-      },
-      {
-        title: "Status",
-        dataIndex: "eventStatus",
-        key: "name",
-        render: (text, event) => {
-          let status = "";
-          if (
-            new Date(event.startDate).getTime() > new Date().getTime() &&
-            event.eventStatus !== "draft"
-          )
-            status = <Badge status="success" text="Live" />;
-          if (event.eventStatus === "draft")
-            status = <Badge status="processing" text="Draft" />;
-          if (
-            new Date(event.startDate).getTime() < new Date().getTime() &&
-            event.eventStatus !== "draft"
-          )
-            status = <Badge status="default" text="Sale Ended" />;
-          return <>{status}</>;
-        }
-      },
-      {
-        title: "Action",
-        dataIndex: "action",
-        key: "action",
-        render: (text, event) => {
-          const menu = (
-            <Menu>
-              <Menu.Item key={`/e/${event.slug}`}>
-                <Link href={`/e/${event.slug}`}>View</Link>
-              </Menu.Item>
-              <Menu.Item key={`/manage/${event._id}`}>
-                <Link href={`/manage/${event._id}`}>Manage</Link>
-              </Menu.Item>
-              <Menu.Item
-                onClick={() => {
-                  console.log("cmon man");
-                  this.props.dispatch({ type: "edit_event", payload: event });
-                }}
-                key="3"
-              >
-                <Link href={`/cre`}>Edit</Link>
-              </Menu.Item>
-              <Menu.Item key="4">
-                {" "}
-                <Popconfirm
-                  title="Are you sure delete this event?"
-                  onConfirm={() => {
-                    console.log({
-                      data: event
-                    });
-                    axios
-                      .delete(`/api/event/${event._id}`)
-                      .then(res => {
-                        console.log(res.data);
-                        this.props.dispatch({
-                          type: "event_deletion",
-                          payload: event._id
-                        });
-                      })
-                      .catch(err => {
-                        console.log(err);
-                      });
-                  }}
-                  onCancel={e => {
-                    console.log(e);
-                    message.error("Click on No");
-                  }}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <a href="#">Delete</a>
-                </Popconfirm>
-              </Menu.Item>
-            </Menu>
-          );
-          return (
-            <span>
-              <Dropdown overlay={menu}>
-                <Button>
-                  Actions <Icon type="down" />
-                </Button>
-              </Dropdown>
-            </span>
-          );
-        }
-      }
-    ];
-    const mobileColumns = [
-      {
-        title: "Event",
-        dataIndex: "title",
-        render: (text, event) => {
-          return (
-            <>
-              <Row gutter={8}>
-                <Text strong>{text}</Text>
-                <br />
-                <Text>{getTime(event.startDate)}</Text>
-              </Row>
-            </>
-          );
-        }
-      },
-      {
-        title: "Status",
-        dataIndex: "eventStatus",
-        key: "name",
-        render: (text, event) => {
-          console.log(
-            event.title,
-            event.startDate,
-            new Date(event.startDate).getTime(),
-            new Date().getTime()
-          );
-          let status = "";
-          if (
-            new Date(event.startDate).getTime() > new Date().getTime() &&
-            event.eventStatus !== "draft"
-          )
-            status = <Badge status="success" text="Live" />;
-          if (event.eventStatus === "draft")
-            status = <Badge status="processing" text="Draft" />;
+    console.log(getPayouts(events));
 
-          if (
-            new Date(event.startDate).getTime() < new Date().getTime() &&
-            event.eventStatus !== "draft"
-          )
-            status = <Badge status="default" text="Sale Ended" />;
-          return <>{status}</>;
-        }
-      },
-      {
-        title: "Action",
-        dataIndex: "action",
-        key: "action",
-        render: (text, event) => {
-          const menu = (
-            <Menu>
-              <Menu.Item key={`/e/${event.slug}`}>
-                <Link href={`/e/${event.slug}`}>View</Link>
-              </Menu.Item>
-              <Menu.Item key={`/manage/${event._id}`}>
-                <Link href={`/manage/${event._id}`}>Manage</Link>
-              </Menu.Item>
-              <Menu.Item
-                onClick={() => {
-                  console.log("cmon man");
-                  this.props.dispatch({ type: "edit_event", payload: event });
-                }}
-                key="3"
-              >
-                <Link href={`/cre`}>Edit</Link>
-              </Menu.Item>
-              <Menu.Item key="4">
-                {" "}
-                <Popconfirm
-                  title="Are you sure delete this event?"
-                  onConfirm={() => {
-                    console.log({
-                      data: event
-                    });
-                    axios
-                      .delete(`/api/event/${event._id}`)
-                      .then(res => {
-                        console.log(res.data);
-                        this.props.dispatch({
-                          type: "event_deletion",
-                          payload: event._id
-                        });
-                      })
-                      .catch(err => {
-                        console.log(err);
-                      });
-                  }}
-                  onCancel={e => {
-                    console.log(e);
-                    message.error("Click on No");
-                  }}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <a href="#">Delete</a>
-                </Popconfirm>
-              </Menu.Item>
-            </Menu>
-          );
-          return (
-            <span>
-              <Dropdown overlay={menu}>
-                <Button>
-                  Actions <Icon type="down" />
-                </Button>
-              </Dropdown>
-            </span>
-          );
-        }
-      }
-    ];
     const payoutsDesktopColumns = [
       {
+        title: "Payout ID",
+        dataIndex: "id",
+        key: "id",
+        render: (id, payout) => {
+          console.log("payout", payout);
+          return (
+            <Link
+              href={`/payouts/${payout._id}`}
+            >{`${payout.arrival_date}`}</Link>
+          );
+        }
+      },
+      {
+        title: "Event",
+        dataIndex: "title",
+        key: "title"
+      },
+      {
         title: "Initiated On",
-        dataIndex: "key",
-        key: "key",
-        render: order => <Link href={`/manage/`}>{order}</Link>
-      },
-      {
-        title: "Payout Method",
-        dataIndex: "name",
-        key: "name"
-      },
-      {
-        title: "Status",
-        dataIndex: "age",
-        key: "age"
+        dataIndex: "created",
+        key: "created",
+        render: total => {
+          var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
+          date.setUTCSeconds(total);
+          return `${getTime(date)}`;
+        }
       },
       {
         title: "Est. Arrival",
-        dataIndex: "total",
-        key: "total",
-        render: total => `$${total}`
+        dataIndex: "arrival_date",
+        key: "arrival_date",
+        render: total => {
+          var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
+          date.setUTCSeconds(total);
+          return `${getTime(date)}`;
+        }
       },
       {
         title: "Amount",
-        dataIndex: "total",
-        key: "total",
-        render: total => `$${total}`
+        dataIndex: "amount",
+        key: "amount",
+        render: total => `${formatPrice(total)}`
       }
       // {
       //   title: 'Action',
@@ -498,17 +287,12 @@ class Payouts extends React.Component {
 
     return (
       <>
-        {/* <Card title="Events" extra="Lets get this money">
-          <ConfigProvider renderEmpty={!loading ? customizeRenderEmpty : customizeRenderLoading}>
-              <Table size="small" {...{pagination: false}} dataSource={events} columns={isMobile? mobileColumns: desktopColumns} />
-          </ConfigProvider>
-        </Card> */}
         <Card title="Payouts">
           <ConfigProvider renderEmpty={() => customizeRenderEmpty("Payouts")}>
             <Table
               size="small"
               {...{ pagination: false }}
-              dataSource={[]}
+              dataSource={getPayouts(events)}
               columns={payoutsDesktopColumns}
             />
           </ConfigProvider>
@@ -518,4 +302,8 @@ class Payouts extends React.Component {
   }
 }
 
-export default connect()(Payouts);
+export default connect(state => {
+  return {
+    events: state.myEvents
+  };
+})(Payouts);

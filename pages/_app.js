@@ -1,34 +1,35 @@
-import '../assets/styles.less';
+import "../assets/styles.less";
 
-import App from 'next/app';
-import { Provider, connect } from 'react-redux';
+import App from "next/app";
+import { Provider, connect } from "react-redux";
 
-import AppProvider from '../components/shared/AppProvider';
-import {createStore} from "redux";
-import { GlobalStyles } from '../components/styles/GlobalStyles';
-import Head from 'next/head';
-import NProgress from 'nprogress';
-import Page from '../components/Page';
-import Router from 'next/router';
+import AppProvider from "../components/shared/AppProvider";
+import { createStore } from "redux";
+import { GlobalStyles } from "../components/styles/GlobalStyles";
+import Head from "next/head";
+import NProgress from "nprogress";
+import Page from "../components/Page";
+import Router from "next/router";
 import withRedux from "next-redux-wrapper";
 import { makeStore } from "../lib/store";
+import { AUTH_CONFIG } from "../lib/auth0-variables";
 
-Router.events.on('routeChangeStart', () => NProgress.start());
-Router.events.on('routeChangeComplete', () => NProgress.done());
-Router.events.on('routeChangeError', () => NProgress.done());
+const host = AUTH_CONFIG.host;
+Router.events.on("routeChangeStart", () => NProgress.start());
+Router.events.on("routeChangeComplete", () => NProgress.done());
+Router.events.on("routeChangeError", () => NProgress.done());
 
 class MyApp extends App {
   static async getInitialProps({ Component, ctx, req }) {
     let pageProps = {};
     const userAgent = ctx.req
-      ? ctx.req.headers['user-agent']
+      ? ctx.req.headers["user-agent"]
       : navigator.userAgent;
 
     let ie = false;
     if (userAgent.match(/Edge/i) || userAgent.match(/Trident.*rv[ :]*11\./i)) {
       ie = true;
     }
-
     if (Component.getInitialProps) {
       pageProps = await Component.getInitialProps(ctx);
     }
@@ -36,10 +37,29 @@ class MyApp extends App {
     pageProps.ieBrowser = ie;
     return { pageProps };
   }
-
+  componentDidMount() {
+    if (typeof localStorage !== "undefined") {
+      var user_data = localStorage.getItem("user_details");
+      var isLoggedIn = localStorage.getItem("isLoggedIn");
+      if (isLoggedIn) {
+        const data = JSON.parse(user_data);
+        console.log(`logged in `);
+        const login = async () => {
+          const resUser = await fetch(`${host}/api/user/${data.sub}`);
+          const user = await resUser.json();
+          console.log("user", user);
+          this.props.store.dispatch({
+            type: "fetch_user",
+            payload: user[0]
+          });
+        };
+        login();
+      }
+    }
+  }
   render() {
     const { Component, pageProps, store } = this.props;
-
+    // console.log(this.props);
     return (
       <>
         <GlobalStyles />
@@ -62,9 +82,9 @@ class MyApp extends App {
         </Head>
         <Provider store={store}>
           <AppProvider>
-              <Page>
-                <Component {...pageProps} />
-              </Page>
+            <Page>
+              <Component {...pageProps} />
+            </Page>
           </AppProvider>
         </Provider>
       </>
