@@ -1,7 +1,7 @@
 // Local dependencies
 const { handleErrors } = require("../helpers/error");
 const { postS3 } = require("../helpers/upload");
-const { userApi } = require("../helpers/user");
+const { userApi, createAccountApi } = require("../helpers/user");
 const { create } = require("../helpers/events");
 const { createAccount, ticketApi, balanceApi } = require("../helpers/payments");
 const { send } = require("micro");
@@ -9,7 +9,8 @@ const { send } = require("micro");
 const postApi = fn => async (req, res) => {
   try {
     const parse = req.url.split("/");
-    switch (`${parse[2]}`) {
+    console.log(req.url);
+    switch (`/${parse[2]}`) {
       case "/upload":
         return await fn(postS3(req, res));
       case "/event":
@@ -22,6 +23,9 @@ const postApi = fn => async (req, res) => {
         return await fn(balanceApi(req, res));
       case "/user":
         return await fn(userApi(req, res));
+      case "/connect":
+        console.log("connect hoe");
+        return await fn(createAccountApi(req, res));
       default:
         return send(res, 200, { err: "invalid route" });
     }

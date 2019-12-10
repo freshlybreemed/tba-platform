@@ -1,6 +1,19 @@
-import { Button, Card, Row, Form, Input, message, Select } from "antd";
+import {
+  Button,
+  Card,
+  DatePicker,
+  Row,
+  Form,
+  Input,
+  message,
+  Radio,
+  Select
+} from "antd";
 import { Component } from "react";
-import Avatar from "./Upload";
+import Cleave from "cleave.js/react";
+import "cleave.js/dist/addons/cleave-phone.us";
+
+import Upload from "./Upload";
 import { connect } from "react-redux";
 import { createForm, createFormField, formShape } from "rc-form";
 import axios from "axios";
@@ -12,12 +25,6 @@ class PayoutSettings extends Component {
   constructor(props) {
     super(props);
   }
-  componentDidMount() {
-    this.props.dispatch({
-      type: "edit_account",
-      payload: this.props.user
-    });
-  }
 
   handleSubmit = e => {
     e.preventDefault();
@@ -27,18 +34,14 @@ class PayoutSettings extends Component {
     //   }
     // });
     axios
-      .post("/api/user", {
+      .post("/api/connect", {
         data: this.props.user
       })
       .then(res => {
         // if(res.data.length!=0){
         message.success("Successfully created!");
         console.log(res);
-        this.props.dispatch({
-          type: "fetch_events",
-          payload: res.data
-        });
-        window.location = "/myevents";
+        // window.location = "/myevents";
         // }
         // else {
         //   console.log("ERROR- event:", res.data)
@@ -63,7 +66,10 @@ class PayoutSettings extends Component {
     console.log(this.props);
     const validRoutingNumber = () => {
       const routing = getFieldValue("accountSettingsForm.routingNumber");
-      console.log(routing);
+      console.log(routing.length);
+      // if (routing.length < 9) {
+      //   return true;
+      // }
       if (routing.length !== 9) {
         return false;
       }
@@ -93,57 +99,125 @@ class PayoutSettings extends Component {
     return (
       <>
         <Card
-          title="Contact Settings"
-          className="mb-4"
-          bodyStyle={{ padding: "1rem" }}
-        >
-          <Form onSubmit={this.handleSubmit}>
-            <FormItem {...formItemLayout} label="First Name">
-              {getFieldDecorator("accountSettingsForm.firstName", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Last Name">
-              {getFieldDecorator("accountSettingsForm.lastName", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Organizer Name">
-              {getFieldDecorator("accountSettingsForm.organizerName", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Add a Profile Image">
-              <Avatar />
-            </FormItem>
-          </Form>
-        </Card>
-        <Card
           title="Payout Settings"
           className="mb-4"
           bodyStyle={{ padding: "1rem" }}
         >
           <Form onSubmit={this.handleSubmit}>
-            <FormItem {...formItemLayout} label="Account Number">
-              {getFieldDecorator("accountSettingsForm.accountNumber", {
+            <FormItem {...formItemLayout} label="Business or Individual">
+              {getFieldDecorator("accountSettingsForm.accountType", {
+                rules: [
+                  {
+                    required: true,
+                    message: "Please input your event name!",
+                    whitespace: true
+                  }
+                ],
+                initialValue: "individual"
+              })(
+                <Radio.Group>
+                  <Radio value={"company"}>Company</Radio>
+                  <Radio value={"individual"}>Individual</Radio>
+                </Radio.Group>
+              )}
+            </FormItem>
+            {getFieldValue("accountSettingsForm.accountType") ===
+            "individual" ? (
+              <>
+                <FormItem {...formItemLayout} label="First Name">
+                  {getFieldDecorator("accountSettingsForm.firstName", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(<Input />)}
+                </FormItem>
+                <FormItem {...formItemLayout} label="Last Name">
+                  {getFieldDecorator("accountSettingsForm.lastName", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(<Input />)}
+                </FormItem>
+                <FormItem {...formItemLayout} label="Date of Birth">
+                  {getFieldDecorator("accountSettingsForm.dob", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(
+                    <Cleave
+                      className="ant-input"
+                      placeholder="MM / DD / YYYY"
+                      options={{ date: true, datePattern: ["m", "d", "Y"] }}
+                    />
+                  )}
+                </FormItem>
+                <FormItem {...formItemLayout} label="SSN">
+                  {getFieldDecorator("accountSettingsForm.lastFourSSN", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(<Input.Password />)}
+                </FormItem>
+                <FormItem {...formItemLayout} label="Photo ID - Front">
+                  <Upload />
+                </FormItem>
+                <FormItem {...formItemLayout} label="Photo ID - Back">
+                  <Upload />
+                </FormItem>
+              </>
+            ) : (
+              <>
+                <FormItem {...formItemLayout} label="Company Name">
+                  {getFieldDecorator("accountSettingsForm.name", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(<Input />)}
+                </FormItem>
+                <FormItem {...formItemLayout} label="Tax ID">
+                  {getFieldDecorator("accountSettingsForm.taxId", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(
+                    <Cleave
+                      className="ant-input"
+                      options={{
+                        blocks: [2, 7],
+                        delimiter: "-",
+                        numericOnly: true
+                      }}
+                    />
+                  )}
+                </FormItem>
+              </>
+            )}
+            <FormItem {...formItemLayout} label="Phone Number">
+              {getFieldDecorator("accountSettingsForm.phoneNumber", {
                 rules: [
                   {
                     required: true,
@@ -151,57 +225,13 @@ class PayoutSettings extends Component {
                     whitespace: true
                   }
                 ]
-              })(<Input />)}
+              })(
+                <Cleave
+                  className="ant-input"
+                  options={{ phone: true, phoneRegionCode: "US" }}
+                />
+              )}
             </FormItem>
-            <FormItem
-              validateStatus={
-                getFieldError("accountSettingsForm.routingNumber")
-                  ? "error"
-                  : ""
-              }
-              help={
-                getFieldError("accountSettingsForm.routingNumber")
-                  ? "Invalid routing number!"
-                  : ""
-              }
-              {...formItemLayout}
-              label="Routing Number"
-            >
-              {getFieldDecorator("accountSettingsForm.routingNumber", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  },
-                  {
-                    validator: validRoutingNumber
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Organizer Name">
-              {getFieldDecorator("accountSettingsForm.organizerName", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Add a Profile Image">
-              <Avatar />
-            </FormItem>
-          </Form>
-        </Card>
-        <Card
-          title="Home Address"
-          bodyStyle={{ padding: "1rem" }}
-          className="mb-4"
-        >
-          <Form onSubmit={this.handleSubmit}>
             <FormItem {...formItemLayout} label="Address">
               {getFieldDecorator("accountSettingsForm.homeAddress", {
                 rules: [
@@ -326,6 +356,53 @@ class PayoutSettings extends Component {
             </FormItem>
           </Form>
         </Card>
+        <Card
+          title="Bank Info"
+          className="mb-4"
+          bodyStyle={{ padding: "1rem" }}
+        >
+          <Form onSubmit={this.handleSubmit}>
+            <FormItem {...formItemLayout} label="Account Number">
+              {getFieldDecorator("accountSettingsForm.accountNumber", {
+                rules: [
+                  {
+                    required: true,
+                    message: "Please input your event name!",
+                    whitespace: true
+                  }
+                ]
+              })(<Input.Password />)}
+            </FormItem>
+            <FormItem
+              validateStatus={
+                getFieldError("accountSettingsForm.routingNumber")
+                  ? "error"
+                  : ""
+              }
+              help={
+                getFieldError("accountSettingsForm.routingNumber")
+                  ? "Invalid routing number!"
+                  : ""
+              }
+              {...formItemLayout}
+              label="Routing Number"
+            >
+              {getFieldDecorator("accountSettingsForm.routingNumber", {
+                rules: [
+                  {
+                    required: true,
+                    message: "Please input your event name!",
+                    whitespace: true
+                  },
+                  {
+                    validator: validRoutingNumber
+                  }
+                ]
+              })(<Input.Password />)}
+            </FormItem>
+          </Form>
+        </Card>
+
         <Button onClick={this.handleSubmit} type="primary" htmlType="submit">
           Update
         </Button>
@@ -336,11 +413,12 @@ class PayoutSettings extends Component {
 
 const mapStateToProps = state => {
   return {
-    accountSettings: state.accontSettings,
+    accountSettings: state.accountSettings,
     user: state.user,
     formState: {
       firstName: state.accountSettingsForm.firstName,
       lastName: state.accountSettingsForm.lastName,
+      name: state.accountSettingsForm.name,
       city: state.accountSettingsForm.city,
       organizerName: state.accountSettingsForm.organizerName,
       homeAddress: state.accountSettingsForm.homeAddress,
@@ -348,15 +426,13 @@ const mapStateToProps = state => {
       country: state.accountSettingsForm.country,
       zipCode: state.accountSettingsForm.zipCode,
       state: state.accountSettingsForm.state,
-      routingNumber: state.accountSettingsForm.routingNumber
-      //   // endDate: state.createdEventForm.endDate,
-      //   // startTime: state.createdEventForm.startTime,
-      //   // location: state.createdEventForm.location,
-      //   // endTime: state.createdEventForm.endTime,
-      //   // refundable: state.createdEventForm.refundable,
-      //   // organizer: state.createdEventForm.organizer,
-      //   // description: state.createdEventForm.description,
-      //   // eventStatus: state.createdEventForm.eventStatus
+      lastFourSSN: state.accountSettingsForm.lastFourSSN,
+      accountNumber: state.accountSettingsForm.accountNumber,
+      routingNumber: state.accountSettingsForm.routingNumber,
+      accountType: state.accountSettingsForm.accountType,
+      taxId: state.accountSettingsForm.taxId,
+      phoneNumber: state.accountSettingsForm.phoneNumber,
+      dob: state.accountSettingsForm.dob
     }
   };
 };
@@ -374,6 +450,7 @@ export default connect(mapStateToProps)(
       return {
         accountSettingsForm: {
           firstName: createFormField(props.formState.firstName),
+          name: createFormField(props.formState.name),
           lastName: createFormField(props.formState.lastName),
           city: createFormField(props.formState.city),
           organizerName: createFormField(props.formState.organizerName),
@@ -382,7 +459,13 @@ export default connect(mapStateToProps)(
           country: createFormField(props.formState.country),
           zipCode: createFormField(props.formState.zipCode),
           state: createFormField(props.formState.state),
-          routingNumber: createFormField(props.formState.routingNumber)
+          routingNumber: createFormField(props.formState.routingNumber),
+          accountNumber: createFormField(props.formState.accountNumber),
+          lastFourSSN: createFormField(props.formState.lastFourSSN),
+          accountType: createFormField(props.formState.accountType),
+          phoneNumber: createFormField(props.formState.phoneNumber),
+          dob: createFormField(props.formState.dob),
+          taxId: createFormField(props.formState.taxId)
         }
       };
     }

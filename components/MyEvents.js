@@ -209,14 +209,14 @@ class MyEvents extends React.Component {
         render: (text, event) => {
           let status = "";
           if (
-            new Date(event.startDate).getTime() > new Date().getTime() &&
+            new Date(event.endDate).getTime() > new Date().getTime() &&
             event.eventStatus !== "draft"
           )
             status = <Badge status="success" text="Live" />;
           if (event.eventStatus === "draft")
             status = <Badge status="processing" text="Draft" />;
           if (
-            new Date(event.startDate).getTime() < new Date().getTime() &&
+            new Date(event.endDate).getTime() < new Date().getTime() &&
             event.eventStatus !== "draft"
           )
             status = <Badge status="default" text="Sale Ended" />;
@@ -243,7 +243,7 @@ class MyEvents extends React.Component {
                 }}
                 key="3"
               >
-                <Link href={`/cre`}>Edit</Link>
+                <Link href={`/edit/${event._id}`}>Edit</Link>
               </Menu.Item>
               {event.eventStatus === "draft" || !event.tickets ? (
                 <Menu.Item key="4">

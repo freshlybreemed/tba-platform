@@ -65,16 +65,18 @@ class _CardForm extends React.Component {
     if (this.props.stripe) {
       this.props.stripe
         .createToken({
-          name: this.props.eventCheckout.firstName.value
-          // address_line1: 'Castle Blvd',
+          name: this.props.eventCheckoutForm.firstName
         })
         .then(payload => {
           console.log("[token]", payload);
-          const { selectedEvent, eventCheckout } = this.props;
+          const { selectedEvent, eventCheckoutForm } = this.props;
           axios
             .post(`/api/charge`, {
               token: payload.token,
-              eventCheckout: { ...eventCheckout, title: selectedEvent.title }
+              eventCheckoutForm: {
+                ...eventCheckoutForm,
+                title: selectedEvent.title
+              }
             })
             .then(res => {
               console.log(res.data);
@@ -117,7 +119,8 @@ const mapStateToProps = state => {
   console.log(state);
   return {
     selectedEvent: state.selectedEvent,
-    eventCheckout: state.eventCheckout
+    eventCheckout: state.eventCheckout,
+    eventCheckoutForm: state.eventCheckoutForm
   };
 };
 

@@ -1,17 +1,39 @@
 {
   "name": "one",
   "version": 2,
+  "scope": "tba-project",
   "builds": [
-    { "src": "/static/*", "use": "@now/static", "config": { "maxLambdaSize": "50mb" } },
-    { "src": "server/handlers/get.js", "use": "@now/node", "config": { "maxLambdaSize": "50mb" } },
-    { "src": "server/helpers/events.js", "use": "@now/node", "config": { "maxLambdaSize": "50mb" } },
-    { "src": "package.json", "use": "@now/next", "config": { "maxLambdaSize": "50mb" }  }
+    {
+      "src": "server/handlers/get.js",
+      "use": "@now/node",
+      "config": { "maxLambdaSize": "50mb" }
+    },
+    {
+      "src": "server/handlers/post.js",
+      "use": "@now/node",
+      "config": { "maxLambdaSize": "50mb" }
+    },
+    {
+      "src": "server/helpers/events.js",
+      "use": "@now/node",
+      "config": { "maxLambdaSize": "50mb" }
+    },
+    {
+      "src": "package.json",
+      "use": "@now/next",
+      "config": { "maxLambdaSize": "50mb" }
+    }
   ],
   "routes": [
     {
       "src": "/(.*)",
       "methods": ["POST"],
       "dest": "server/handlers/post.js"
+    },
+    {
+      "src": "/api/connect",
+      "methods": ["POST"],
+      "dest": "server/helpers/user.js"
     },
     {
       "src": "/api/charge/(.*)",
@@ -29,6 +51,11 @@
       "dest": "server/handlers/get.js?id=$1"
     },
     {
+      "src": "/api/user/(.*)",
+      "methods": ["GET"],
+      "dest": "server/handlers/get.js?id=$1"
+    },
+    {
       "src": "/api/balance/(.*)",
       "methods": ["GET"],
       "dest": "server/handlers/get.js?id=$1"
@@ -36,14 +63,14 @@
     { "src": "/static/(.*)", "dest": "/static/$1" },
     { "src": "/(.*)", "dest": "/$1" },
     { "src": "/event/:slug", "dest": "pages/event.js" }
-
   ],
-   
+
   "env": {
-    "REACT_APP_GUEST_PASS_KEY":"xx",
-    "MONGO":"xxy",
-    "STRIPE_SECRET_DEV":"xx",
-    "STRIPE_SECRET_PROD":"xx",
-    "REACT_APP_AUTH0_CLIENT_ID":"xx"
+    "GUEST_PASS_KEY": "564db0117b8a65ddd60271eaf3298aa4",
+    "MONGO_URL": "@mongo-url",
+    "STRIPE_SECRET_DEV": "@stripe-secret-dev",
+    "STRIPE_CLIENT_DEV": "@stripe-client-dev",
+    "STRIPE_SECRET_PROD": "@stripe-secret-prod",
+    "AUTH0_CLIENT_ID": "@auth0-client-id"
   }
 }

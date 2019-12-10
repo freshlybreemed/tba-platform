@@ -20,13 +20,14 @@ import { Calendar, Target } from "react-feather";
 import { StripeProvider } from "react-stripe-elements";
 import CardSection from "./CardSection";
 import EventCheckout from "./EventCheckout";
+import Checkout from "./Checkout";
 import { Component } from "react";
 import { connect } from "react-redux";
 import MapGL, { Marker, NavigationControl, Popup } from "react-map-gl";
 import { Result } from "antd";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { formatPrice } from "../lib/helpers";
+import { getTime } from "../lib/helpers";
 import CITIES from "../demos/mock/cities.json";
 import CityInfo from "../demos/map-gl/city-info";
 import CityPin from "../demos/map-gl/city-pin";
@@ -37,65 +38,6 @@ const Panel = Collapse.Panel;
 const ButtonGroup = Button.Group;
 const { Step } = Steps;
 
-const getTime = (datetime, mode) => {
-  var months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  var days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  var dateTime = new Date(datetime);
-  var day = days[dateTime.getDay()];
-  var hr = dateTime.getHours();
-  var min = dateTime.getMinutes();
-  if (min < 10) {
-    min = "0" + min;
-  }
-  var ampm = "am";
-  if (hr > 12) {
-    hr -= 12;
-    ampm = "pm";
-  }
-  var date = dateTime.getDate();
-  if (date > 3 && date < 21) date = date + "th";
-  switch (date % 10) {
-    case 1:
-      date = date + "st";
-      break;
-    case 2:
-      date = date + "nd";
-      break;
-    case 3:
-      date = date + "rd";
-      break;
-    default:
-      break;
-  }
-  var month = months[dateTime.getMonth()];
-  var year = dateTime.getFullYear();
-  if (mode === "start")
-    return day + " " + month + " " + date + " " + hr + ":" + min + ampm;
-  else {
-    return hr + ":" + min + ampm;
-  }
-};
 class Event extends Component {
   constructor(props) {
     super(props);
@@ -116,7 +58,6 @@ class Event extends Component {
         pitch: 0
       }
     };
-    this.handleIncrement = this.handleIncrement.bind(this);
   }
   componentDidMount() {
     // Create Stripe instance in componentDidMount
@@ -133,34 +74,6 @@ class Event extends Component {
       tickettypes.push(ticketTypes[ticket]);
     }
     this.setState({ data: tickettypes });
-  }
-  handleIncrement(value, type) {
-    const { selectedEvent } = this.props;
-    let tixs = {};
-    tixs[type] = {
-      quantity: value,
-      id: selectedEvent.ticketTypes[type].id
-    };
-    this.props.dispatch({
-      type: "update_cart",
-      payload: tixs
-    });
-  }
-  next() {
-    const current = this.state.current + 1;
-    this.setState({ current });
-  }
-
-  prev() {
-    const current = this.state.current - 1;
-    this.setState({ current });
-  }
-
-  handleChange() {
-    console.log("key");
-    this.setState({
-      activeKey: this.state.activeKey === 1 ? 0 : 1
-    });
   }
   _renderCityMarker = (city, index) => (
     <Marker
@@ -193,110 +106,7 @@ class Event extends Component {
   render() {
     const { json, eventCheckoutForm } = this.props;
     const { current, viewport } = this.state;
-    const columns = [
-      {
-        title: "Ticket Type",
-        dataIndex: "name",
-        key: "name"
-      },
-      {
-        title: "Price",
-        dataIndex: "price",
-        key: "age",
-        render: (text, ticket) => {
-          let price;
-          if (text === 0) price = "Free";
-          else price = `$${text} + ${formatPrice(ticket.fees)} Fees`;
-          return <>{price}</>;
-        }
-      },
-      {
-        title: "Quantity",
-        dataIndex: "count",
-        key: "count",
-        render: (text, ticket) => {
-          return (
-            <>
-              <Row>
-                {/* {ticket.currentQuantity<0? */}
-                <Select
-                  defaultValue={
-                    this.props.eventCheckoutForm.cart[ticket.name]
-                      ? this.props.eventCheckoutForm.cart[ticket.name]
-                      : 0
-                  }
-                  style={{ width: 120 }}
-                  onChange={e => this.handleIncrement(e, ticket.name)}
-                >
-                  <Option value={0}>0</Option>
-                  <Option value={1}>1</Option>
-                  <Option value={2}>2</Option>
-                  <Option value={3}>3</Option>
-                  <Option value={4}>4</Option>
-                </Select>
-                {/* :<Tag color="red">Sold Out</Tag>
-                    } */}
-              </Row>
-            </>
-          );
-        }
-      }
-    ];
 
-    const moneySteps = [
-      {
-        title: "Select Tickets",
-        content: (
-          <>
-            <Table
-              pagination={false}
-              footer={() => `Total: ${formatPrice(eventCheckoutForm.total)}`}
-              columns={columns}
-              dataSource={this.state.data}
-            />
-          </>
-        )
-      },
-      {
-        title: "Info",
-        content: <EventCheckout mode="no-payment" />
-      },
-      {
-        title: "Checkout",
-        status: "payment",
-        content:
-          eventCheckoutForm.total > 0 ? (
-            <CardSection />
-          ) : (
-            <EventCheckout mode="no-payment" />
-          )
-      }
-    ];
-    const freeSteps = [
-      {
-        title: "Select Tickets",
-        content: (
-          <>
-            <Table
-              pagination={false}
-              footer={() => `Total: ${formatPrice(eventCheckoutForm.total)}`}
-              columns={columns}
-              dataSource={this.state.data}
-            />
-          </>
-        )
-      },
-      {
-        title: "Info",
-        content: <EventCheckout mode="no-payment" />
-      },
-      {
-        title: "Done",
-        content: <EventCheckout Form mode="no-payment" />
-      }
-    ];
-    const steps =
-      this.props.eventCheckoutForm.total > 0 ? moneySteps : freeSteps;
     return (
       <>
         <Card cover={<img src={json.image} />}>
@@ -307,44 +117,6 @@ class Event extends Component {
           />
           {this.props.eventCheckoutForm.status === "pending" ? (
             <>
-              <Row gutter={8}>
-                <Collapse activeKey={this.state.activeKey} bordered={false}>
-                  <Panel showArrow={false} key="1">
-                    <Steps current={current}>
-                      {steps.map(item => (
-                        <Step
-                          disabled={true}
-                          key={item.title}
-                          title={item.title}
-                        />
-                      ))}
-                    </Steps>
-                    <div className="steps-content">
-                      {steps[current].content}
-                    </div>
-                    <div className="steps-action">
-                      {current > 0 && (
-                        <Button
-                          style={{ marginLeft: 8 }}
-                          onClick={() => this.prev()}
-                        >
-                          Previous
-                        </Button>
-                      )}
-                      {current < steps.length - 1 && (
-                        <Button type="primary" onClick={() => this.next()}>
-                          Next
-                        </Button>
-                      )}
-                      {/* {current === steps.length - 1 && (
-                                    <Button type="primary" onClick={() => message.success('Processing complete!')}>
-                                    Done
-                                    </Button>
-                                )} */}
-                    </div>
-                  </Panel>
-                </Collapse>
-              </Row>
               <Row gutter={8}>
                 <Col span={12}>
                   <Divider />
@@ -361,16 +133,16 @@ class Event extends Component {
                       ? `${json.location.city}, ${json.location.state}`
                       : json.location.streetAddress}
                   </p>
-                  {`${getTime(json.startDate, "start")}-${getTime(
+                  {`${getTime(json.startDate, "full")}-${getTime(
                     json.endDate,
-                    "end"
+                    "time"
                   )}`}
                   <p>
                     {json.refundable
                       ? "Refundable"
                       : "No refunds. All sales are final"}
                   </p>
-                  <Button onClick={() => this.handleChange()}>Tickets</Button>
+                  <Checkout />
                 </Col>
               </Row>
             </>
@@ -378,13 +150,15 @@ class Event extends Component {
             <Result
               status="success"
               title="Successfully Purchased Tickets"
-              subTitle={`Your order with ${json.title} has been successfully posted. Your receipt will be emailed to you at ${eventCheckoutForm.emailAddress.value}.`}
-              extra={[
-                <Button type="primary" key="console">
-                  Go Console
-                </Button>,
-                <Button key="buy">Buy Again</Button>
-              ]}
+              subTitle={`Your order with ${json.title} has been successfully posted. Your receipt will be emailed to you at ${eventCheckoutForm.emailAddress}.`}
+              extra={
+                [
+                  // <Button type="primary" key="console">
+                  //   Go Console
+                  // </Button>,
+                  // <Button key="buy">Buy Again</Button>
+                ]
+              }
             />
           )}
           <Row>

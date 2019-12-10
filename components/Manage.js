@@ -66,10 +66,10 @@ import StatCard from "./shared/StatCard";
 import WeatherCard from "./shared/WeatherCard";
 import styled from "styled-components";
 import { theme } from "./styles/GlobalStyles";
+import { getTime } from "../lib/helpers";
+
 import { isMobile } from "react-device-detect";
 import { AUTH_CONFIG } from "../lib/auth0-variables";
-
-import event from "../lib/event";
 
 const host = AUTH_CONFIG.host;
 
@@ -84,62 +84,6 @@ const generate = () => {
     arr.push({ x, y });
   });
   return arr;
-};
-
-const getTime = datetime => {
-  var months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  var days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  var dateTime = new Date(datetime);
-  var day = days[dateTime.getDay()];
-  var hr = dateTime.getHours();
-  var min = dateTime.getMinutes();
-  if (min < 10) {
-    min = "0" + min;
-  }
-  var ampm = "am";
-  if (hr > 12) {
-    hr -= 12;
-    ampm = "pm";
-  }
-  var date = dateTime.getDate();
-  if (date > 3 && date < 21) date = date + "th";
-  switch (date % 10) {
-    case 1:
-      date = date + "st";
-      break;
-    case 2:
-      date = date + "nd";
-      break;
-    case 3:
-      date = date + "rd";
-      break;
-    default:
-      break;
-  }
-  var month = months[dateTime.getMonth()];
-  var year = dateTime.getFullYear();
-  return day + ", " + month + " " + date;
 };
 
 const getTixQuantity = metadata => {
@@ -519,7 +463,7 @@ class Manage extends Component {
           person.metadata.lastName
         )}`,
         age: getTixQuantity(person.metadata),
-        date: getTime(date),
+        date: getTime(date, "date"),
         total: person.amount_refunded
           ? `-(${(person.amount / 100).toFixed(2)})`
           : `${(person.amount / 100).toFixed(2)}`,
@@ -531,57 +475,58 @@ class Manage extends Component {
     return recentOrders;
   };
   renderGraph = () => {
-    let render = this.props.event.tickets.map(order => {
-      return {
-        x: new Date(
-          `${new Date(order.created * 1000).getMonth().toString()}/${new Date(
-            order.created * 1000
-          )
-            .getDate()
-            .toString()}/${new Date(order.created * 1000)
-            .getFullYear()
-            .toString()}`
-        ),
-        y: (order.amount - order.amount_refunded) / 100
-      };
-    });
-    const days = {};
-    render.forEach((item, index, object) => {
-      days[item.x] = days[item.x] ? days[item.x] + item.y : item.y;
-    });
-    let graph = [];
-    for (var day in days) {
-      graph.push({
-        x: new Date(day),
-        y: days[day]
-      });
-    }
-    Date.prototype.addDays = function(days) {
-      var date = new Date(this.valueOf());
-      date.setDate(date.getDate() + days);
-      return date;
-    };
-
     var dateArray = new Array();
-    for (var metric in graph) {
-      dateArray.push(graph[metric]);
-      const metrica = parseInt(metric) + 1;
-      if (graph[metrica]) {
-        var currentDate = graph[metrica].x;
-        const array = [];
-        while (currentDate < graph[metric].x) {
-          currentDate = currentDate.addDays(1);
-          if (currentDate.getTime() !== graph[metric].x.getTime()) {
-            array.push({
-              x: new Date(currentDate),
-              y: 0
-            });
+    if (this.props.event.tickets) {
+      let render = this.props.event.tickets.map(order => {
+        return {
+          x: new Date(
+            `${new Date(order.created * 1000).getMonth().toString()}/${new Date(
+              order.created * 1000
+            )
+              .getDate()
+              .toString()}/${new Date(order.created * 1000)
+              .getFullYear()
+              .toString()}`
+          ),
+          y: (order.amount - order.amount_refunded) / 100
+        };
+      });
+      const days = {};
+      render.forEach((item, index, object) => {
+        days[item.x] = days[item.x] ? days[item.x] + item.y : item.y;
+      });
+      let graph = [];
+      for (var day in days) {
+        graph.push({
+          x: new Date(day),
+          y: days[day]
+        });
+      }
+      Date.prototype.addDays = function(days) {
+        var date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;
+      };
+
+      for (var metric in graph) {
+        dateArray.push(graph[metric]);
+        const metrica = parseInt(metric) + 1;
+        if (graph[metrica]) {
+          var currentDate = graph[metrica].x;
+          const array = [];
+          while (currentDate < graph[metric].x) {
+            currentDate = currentDate.addDays(1);
+            if (currentDate.getTime(date) !== graph[metric].x.getTime()) {
+              array.push({
+                x: new Date(currentDate),
+                y: 0
+              });
+            }
           }
+          dateArray = dateArray.concat(array.reverse());
         }
-        dateArray = dateArray.concat(array.reverse());
       }
     }
-
     return [dateArray];
   };
   onNearestX = (value, { index }) => {

@@ -18,10 +18,10 @@ module.exports = async () => {
   // If no connection is cached, create a new one
   // Error if the client connection fails
   try {
-    client = await MongoClient.connect(process.env.MONGO, {
-      useNewUrlParser: true
+    client = await MongoClient.connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
     });
-    console.log("mongo", process.env.MONGO);
   } catch (err) {
     throw new Error("[MongoDB] Connection Error: " + err);
   }
@@ -29,7 +29,7 @@ module.exports = async () => {
   // Select the database through the connection,
   // using the database path of the connection string
   const database = await client.db(
-    url.parse(process.env.MONGO).pathname.substr(1)
+    url.parse(process.env.MONGO_URL).pathname.substr(1)
   );
 
   // Cache the database connection and return the connection

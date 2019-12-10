@@ -37,7 +37,7 @@ class MyApp extends App {
     pageProps.ieBrowser = ie;
     return { pageProps };
   }
-  componentDidMount() {
+  componentWillMount() {
     if (typeof localStorage !== "undefined") {
       var user_data = localStorage.getItem("user_details");
       var isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -46,11 +46,16 @@ class MyApp extends App {
         console.log(`logged in `);
         const login = async () => {
           const resUser = await fetch(`${host}/api/user/${data.sub}`);
+          const resEvents = await fetch(`${host}/api/events/${data.sub}`);
           const user = await resUser.json();
-          console.log("user", user);
+          const events = await resEvents.json();
+          console.log("events", events);
           this.props.store.dispatch({
             type: "fetch_user",
-            payload: user[0]
+            payload: {
+              user: user[0],
+              events
+            }
           });
         };
         login();
