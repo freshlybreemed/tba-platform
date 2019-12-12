@@ -9,8 +9,10 @@ const headers = {
   Authorization: "Token " + process.env.REACT_APP_GUEST_PASS_KEY,
   "Content-Type": "application/json"
 };
-const wrapAsync = handler => (req, res) =>
-  handler(req)
+const wrapAsync = handler => (req, res) => {
+  res.setHeader("cache-control", "s-maxage=1 maxage=0, stale-while-revalidate");
+
+  return handler(req)
     .then(result => {
       res.setHeader(
         "cache-control",
@@ -19,6 +21,7 @@ const wrapAsync = handler => (req, res) =>
       return res.json(result);
     })
     .catch(error => res.status(500).json({ error: error.message }));
+};
 
 const events = async (req, res) => {
   const { query } = parse(req.url, true);
@@ -131,7 +134,6 @@ const eventsByOrganizer = wrapAsync(async function(req) {
   const { query } = parse(req.url, true);
   // Set caching headers to serve stale content (if over a second old)
   // while revalidating fresh content in the background
-  res.setHeader("cache-control", "s-maxage=1 maxage=0, stale-while-revalidate");
   // console.log('we got it')
   const database = await connect();
   const collection = await database.collection("tba");

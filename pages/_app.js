@@ -49,7 +49,6 @@ class MyApp extends App {
           const resEvents = await fetch(`${host}/api/events/${data.sub}`);
           const user = await resUser.json();
           const events = await resEvents.json();
-          console.log("events", events);
           this.props.store.dispatch({
             type: "fetch_user",
             payload: {

@@ -1,6 +1,7 @@
 import {
   Button,
   Card,
+  Checkbox,
   DatePicker,
   Row,
   Form,
@@ -63,13 +64,22 @@ class PayoutSettings extends Component {
         sm: { span: 16 }
       }
     };
+    const tailFormItemLayout = {
+      wrapperCol: {
+        xs: {
+          span: 24,
+          offset: 0
+        },
+        sm: {
+          span: 16,
+          offset: 8
+        }
+      }
+    };
     console.log(this.props);
     const validRoutingNumber = () => {
       const routing = getFieldValue("accountSettingsForm.routingNumber");
       console.log(routing.length);
-      // if (routing.length < 9) {
-      //   return true;
-      // }
       if (routing.length !== 9) {
         return false;
       }
@@ -362,8 +372,8 @@ class PayoutSettings extends Component {
           bodyStyle={{ padding: "1rem" }}
         >
           <Form onSubmit={this.handleSubmit}>
-            <FormItem {...formItemLayout} label="Account Number">
-              {getFieldDecorator("accountSettingsForm.accountNumber", {
+            <FormItem {...formItemLayout} label="Preferred Payout Method">
+              {getFieldDecorator("accountSettingsForm.payoutMethod", {
                 rules: [
                   {
                     required: true,
@@ -371,35 +381,101 @@ class PayoutSettings extends Component {
                     whitespace: true
                   }
                 ]
-              })(<Input.Password />)}
+              })(
+                <Radio.Group>
+                  <Radio value={"bank"}>Bank</Radio>
+                  <Radio value={"cashapp"}>Cash App</Radio>
+                  <Radio value={"paypal"}>Paypal</Radio>
+                </Radio.Group>
+              )}
             </FormItem>
-            <FormItem
-              validateStatus={
-                getFieldError("accountSettingsForm.routingNumber")
-                  ? "error"
-                  : ""
-              }
-              help={
-                getFieldError("accountSettingsForm.routingNumber")
-                  ? "Invalid routing number!"
-                  : ""
-              }
-              {...formItemLayout}
-              label="Routing Number"
-            >
-              {getFieldDecorator("accountSettingsForm.routingNumber", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  },
-                  {
-                    validator: validRoutingNumber
+
+            {getFieldValue("accountSettingsForm.payoutMethod") === "bank" && (
+              <>
+                <FormItem {...formItemLayout} label="Account Number">
+                  {getFieldDecorator("accountSettingsForm.accountNumber", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(<Input.Password />)}
+                </FormItem>
+                <FormItem
+                  validateStatus={
+                    getFieldError("accountSettingsForm.routingNumber")
+                      ? "error"
+                      : ""
                   }
-                ]
-              })(<Input.Password />)}
-            </FormItem>
+                  help={
+                    getFieldError("accountSettingsForm.routingNumber")
+                      ? "Invalid routing number!"
+                      : ""
+                  }
+                  {...formItemLayout}
+                  label="Routing Number"
+                >
+                  {getFieldDecorator("accountSettingsForm.routingNumber", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      },
+                      {
+                        validator: validRoutingNumber
+                      }
+                    ]
+                  })(<Input.Password />)}
+                </FormItem>
+              </>
+            )}
+            {getFieldValue("accountSettingsForm.payoutMethod") ===
+              "cashapp" && (
+              <>
+                <FormItem {...formItemLayout} label="$Cashtag">
+                  {getFieldDecorator("accountSettingsForm.cashApp", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(<Input />)}
+                </FormItem>
+              </>
+            )}
+            {getFieldValue("accountSettingsForm.payoutMethod") === "paypal" && (
+              <>
+                <FormItem {...formItemLayout} label="Paypal Email">
+                  {getFieldDecorator("accountSettingsForm.paypalEmail", {
+                    rules: [
+                      {
+                        required: true,
+                        message: "Please input your event name!",
+                        whitespace: true
+                      }
+                    ]
+                  })(<Input />)}
+                </FormItem>
+              </>
+            )}
+
+            <p>
+              By clicking 'Submit', under penalties of perjury, I certify that:
+              <br />
+              (1) The number shown on this form is my correct taxpayer
+              identification number, and
+              <br />
+              (2) I am a U.S. citizen or other U.S. person (as defined by the
+              IRS)
+              <br />
+              <strong>Note: </strong>The date, time of submission and your
+              computer's IP address will be recorded upon submission.
+            </p>
           </Form>
         </Card>
 
@@ -432,6 +508,9 @@ const mapStateToProps = state => {
       accountType: state.accountSettingsForm.accountType,
       taxId: state.accountSettingsForm.taxId,
       phoneNumber: state.accountSettingsForm.phoneNumber,
+      payoutMethod: state.accountSettingsForm.payoutMethod,
+      cashApp: state.accountSettingsForm.cashApp,
+      paypalEmail: state.accountSettingsForm.paypalEmail,
       dob: state.accountSettingsForm.dob
     }
   };
@@ -464,6 +543,9 @@ export default connect(mapStateToProps)(
           lastFourSSN: createFormField(props.formState.lastFourSSN),
           accountType: createFormField(props.formState.accountType),
           phoneNumber: createFormField(props.formState.phoneNumber),
+          payoutMethod: createFormField(props.formState.payoutMethod),
+          cashApp: createFormField(props.formState.cashApp),
+          paypalEmail: createFormField(props.formState.paypalEmail),
           dob: createFormField(props.formState.dob),
           taxId: createFormField(props.formState.taxId)
         }

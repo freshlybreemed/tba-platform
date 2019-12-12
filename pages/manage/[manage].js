@@ -7,8 +7,6 @@ import { AUTH_CONFIG } from "../../lib/auth0-variables";
 const host = AUTH_CONFIG.host;
 
 const ManagePage = ({ data, errorCode }) => {
-  console.log("data");
-  console.log(data);
   var response;
   switch (errorCode) {
     case 200:
@@ -31,8 +29,11 @@ ManagePage.getInitialProps = async context => {
   const { manage } = context.query;
   const res = await fetch(`${host}/api/event/${manage}`);
   const json = await res.json();
-  console.log(json);
   const errorCode = json.length === 1 ? 200 : 404;
+  context.store.dispatch({
+    type: "fetch_event",
+    payload: json[0]
+  });
   return { data: json[0], errorCode };
 };
-export default ManagePage;
+export default connect()(ManagePage);

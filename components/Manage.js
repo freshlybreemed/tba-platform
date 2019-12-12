@@ -392,14 +392,11 @@ class Manage extends Component {
         }
       });
     }
-    this.setState(
-      {
-        ticketDayCount,
-        totalTicketCount,
-        totalBalance: totalBalance.toFixed(2)
-      },
-      () => console.log(this.state)
-    );
+    this.setState({
+      ticketDayCount,
+      totalTicketCount,
+      totalBalance: totalBalance.toFixed(2)
+    });
   };
   showModal = () => {
     this.setState({ visible: true });
@@ -413,7 +410,6 @@ class Manage extends Component {
   renderTicketTypes = () => {
     let ticketTypes = this.props.event.ticketTypes;
     const tickets = Object.keys(ticketTypes);
-    const spanCount = 24 / tickets.length;
     const gridStyle = {
       width: "25%",
       textAlign: "center",
@@ -446,16 +442,19 @@ class Manage extends Component {
   renderRecentOrders = () => {
     let recentOrders = [];
 
-    const capitalize = text =>
-      text
+    const capitalize = text => {
+      if (!text) return "";
+      return text
         .toLowerCase()
         .split(" ")
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
+    };
     const { event } = this.props;
     let count = 0;
     for (let order in event.tickets) {
       const person = event.tickets[order];
+      console.log("name", person.metadata.firstName);
       const date = new Date(person.created * 1000).toString();
       recentOrders.push({
         key: String(person.created).substring(5),
@@ -475,6 +474,7 @@ class Manage extends Component {
     return recentOrders;
   };
   renderGraph = () => {
+    return [];
     var dateArray = new Array();
     if (this.props.event.tickets) {
       let render = this.props.event.tickets.map(order => {
@@ -564,7 +564,6 @@ class Manage extends Component {
               value={this.state.totalTicketCount}
               icon={<BarChart size={20} strokeWidth={1} />}
               color={theme.primaryColor}
-              clickHandler={() => message.info("Campaign stat button clicked")}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -574,7 +573,6 @@ class Manage extends Component {
               value={`$${this.state.totalBalance}`}
               icon={<DollarSign size={20} strokeWidth={1} />}
               color={theme.darkColor}
-              clickHandler={() => message.info("Customers stat button clicked")}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -589,7 +587,6 @@ class Manage extends Component {
               }
               icon={<Bell size={20} strokeWidth={1} />}
               color={theme.warningColor}
-              clickHandler={() => message.info("Queries stat button clicked")}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -599,7 +596,6 @@ class Manage extends Component {
               value={870}
               icon={<Tv size={20} strokeWidth={1} />}
               color={theme.errorColor}
-              clickHandler={() => message.info("Opens stat button clicked")}
             />
           </Col>
         </Row>

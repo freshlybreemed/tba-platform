@@ -50,7 +50,6 @@ const EventPage = ({ json, geo, errorCode }) => {
   return response;
 };
 EventPage.getInitialProps = async context => {
-  console.log("context");
   const { slug } = context.query;
   const res = await fetch(`${host}/api/event/${slug}`);
   const json = await res.json();

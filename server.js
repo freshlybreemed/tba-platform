@@ -16,7 +16,6 @@ co(function*() {
   // Initialize the Next.js app
   yield app.prepare();
 
-  console.log(`Connecting to ${MONGO_URL}`);
   const db = yield MongoClient.connect(MONGO_URL, {
     useUnifiedTopology: true,
     useNewUrlParser: true
