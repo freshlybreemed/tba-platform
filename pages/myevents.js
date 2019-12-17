@@ -29,12 +29,6 @@ class MyEventsPage extends Component {
     const data = JSON.parse(user_data);
     if (isLoggedIn) {
       console.log(`logged in `);
-      const res = await axios.get(`/api/events/${data.sub}`);
-      const events = res.data;
-      this.props.dispatch({
-        type: "fetch_events",
-        payload: events
-      });
       this.setState({ loading: false });
     } else {
       console.log(`not logged in `);

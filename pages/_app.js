@@ -10,6 +10,7 @@ import Head from "next/head";
 import NProgress from "nprogress";
 import Page from "../components/Page";
 import Router from "next/router";
+import axios from "axios";
 import withRedux from "next-redux-wrapper";
 import { makeStore } from "../lib/store";
 import { AUTH_CONFIG } from "../lib/auth0-variables";
@@ -45,10 +46,10 @@ class MyApp extends App {
         const data = JSON.parse(user_data);
         console.log(`logged in `);
         const login = async () => {
-          const resUser = await fetch(`${host}/api/user/${data.sub}`);
-          const resEvents = await fetch(`${host}/api/events/${data.sub}`);
-          const user = await resUser.json();
-          const events = await resEvents.json();
+          const resUser = await axios.get(`/api/user/${data.sub}`);
+          const resEvents = await axios.get(`/api/events/${data.sub}`);
+          const user = resUser.data;
+          const events = resEvents.data;
           this.props.store.dispatch({
             type: "fetch_user",
             payload: {

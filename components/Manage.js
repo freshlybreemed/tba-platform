@@ -580,12 +580,13 @@ class Manage extends Component {
             <StatCard
               type="fill"
               title="24-Hour Sales"
-              value={
-                this.state.ticketDayCount
-                  ? this.state.ticketDayCount.toString +
-                    (this.state.ticketDayCount > 1 ? " Tickets" : " Ticket")
-                  : "0"
-              }
+              value={`${this.state.ticketDayCount} 
+                ${
+                  this.state.ticketDayCount === 0 ||
+                  this.state.ticketDayCount > 1
+                    ? " Tickets"
+                    : " Ticket"
+                }`}
               icon={<Bell size={20} strokeWidth={1} />}
               color={theme.warningColor}
             />
@@ -601,13 +602,8 @@ class Manage extends Component {
           </Col>
         </Row>
         <Card title="Recent Orders">
-          {/* <ConfigProvider renderEmpty={() => customizeRenderEmpty('Sales')}>
-                  <Table columns={isMobile? ordersMobileColumns: ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
-                </ConfigProvider> */}
-        </Card>
-        <Card>
           <Table
-            columns={ordersDesktopColumns}
+            columns={isMobile ? ordersMobileColumns : ordersDesktopColumns}
             {...{ pagination: false }}
             dataSource={this.renderRecentOrders()}
           />
