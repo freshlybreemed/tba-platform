@@ -3,7 +3,7 @@ import Link from "next/link";
 import { isMobile } from "react-device-detect";
 import { connect } from "react-redux";
 import axios from "axios";
-
+import { getTime } from "../lib/helpers";
 import {
   Avatar,
   Badge,
@@ -11,7 +11,6 @@ import {
   Card,
   Col,
   ConfigProvider,
-  Divider,
   Dropdown,
   Empty,
   Icon,
@@ -24,62 +23,6 @@ import {
   Typography
 } from "antd";
 const { Text } = Typography;
-
-const getTime = datetime => {
-  var months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  var days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  var dateTime = new Date(datetime);
-  var day = days[dateTime.getDay()];
-  var hr = dateTime.getHours();
-  var min = dateTime.getMinutes();
-  if (min < 10) {
-    min = "0" + min;
-  }
-  var ampm = "am";
-  if (hr > 12) {
-    hr -= 12;
-    ampm = "pm";
-  }
-  var date = dateTime.getDate();
-  if (date > 3 && date < 21) date = date + "th";
-  switch (date % 10) {
-    case 1:
-      date = date + "st";
-      break;
-    case 2:
-      date = date + "nd";
-      break;
-    case 3:
-      date = date + "rd";
-      break;
-    default:
-      break;
-  }
-  var month = months[dateTime.getMonth()];
-  var year = dateTime.getFullYear();
-  return day + ", " + month + " " + date;
-};
 
 const customizeRenderEmpty = () => (
   <>
@@ -134,8 +77,6 @@ const getGross = event => {
         ].indexOf(ticketType) > -1
       )
         continue;
-      // console.log(ticketType)
-      // console.log(ticketTypes[ticketType])
       totalBalance +=
         ticketTypes[ticketType].price * parseInt(ticket.metadata[ticketType]);
     }
@@ -143,7 +84,7 @@ const getGross = event => {
   return `$${totalBalance}`;
 };
 
-class MyEvents extends React.Component {
+class MyEvents extends Component {
   constructor(props) {
     super(props);
   }
@@ -176,7 +117,7 @@ class MyEvents extends React.Component {
                       : "TBD"}
                   </Text>
                   <br />
-                  <Text>{getTime(event.startDate)}</Text>
+                  <Text>{getTime(event.startDate, "date")}</Text>
                 </Col>
               </Row>
             </>
@@ -199,13 +140,13 @@ class MyEvents extends React.Component {
       {
         title: "Gross",
         dataIndex: "gross",
-        key: "name",
+        key: "gross",
         render: (text, event) => <>{getGross(event)}</>
       },
       {
         title: "Status",
         dataIndex: "eventStatus",
-        key: "name",
+        key: "status",
         render: (text, event) => {
           let status = "";
           if (
@@ -231,19 +172,19 @@ class MyEvents extends React.Component {
           const menu = (
             <Menu>
               <Menu.Item key={`/e/${event.slug}`}>
-                <Link href={`/e/${event.slug}`}>View</Link>
+                <Link href={`/e/${event.slug}`}>
+                  <a href={`/e/${event.slug}`}>View</a>
+                </Link>
               </Menu.Item>
               <Menu.Item key={`/manage/${event._id}`}>
-                <Link href={`/manage/${event._id}`}>Manage</Link>
+                <Link href={`/manage/${event._id}`}>
+                  <a href={`/manage/${event._id}`}>Manage</a>
+                </Link>
               </Menu.Item>
-              <Menu.Item
-                onClick={() => {
-                  console.log("cmon man");
-                  this.props.dispatch({ type: "edit_event", payload: event });
-                }}
-                key="3"
-              >
-                <Link href={`/edit/${event._id}`}>Edit</Link>
+              <Menu.Item key="3">
+                <Link href={`/edit/${event._id}`}>
+                  <a href={`/edit/${event._id}`}>Edit</a>
+                </Link>
               </Menu.Item>
               {event.eventStatus === "draft" || !event.tickets ? (
                 <Menu.Item key="4">
@@ -303,7 +244,7 @@ class MyEvents extends React.Component {
               <Row gutter={8}>
                 <Text strong>{text}</Text>
                 <br />
-                <Text>{getTime(event.startDate)}</Text>
+                <Text>{getTime(event.startDate, "date")}</Text>
               </Row>
             </>
           );
@@ -312,7 +253,7 @@ class MyEvents extends React.Component {
       {
         title: "Status",
         dataIndex: "eventStatus",
-        key: "name",
+        key: "status",
         render: (text, event) => {
           console.log(
             event.title,
@@ -345,19 +286,19 @@ class MyEvents extends React.Component {
           const menu = (
             <Menu>
               <Menu.Item key={`/e/${event.slug}`}>
-                <Link href={`/e/${event.slug}`}>View</Link>
+                <Link href={`/e/${event.slug}`}>
+                  <a href={`/e/${event.slug}`}>View</a>
+                </Link>
               </Menu.Item>
               <Menu.Item key={`/manage/${event._id}`}>
-                <Link href={`/manage/${event._id}`}>Manage</Link>
+                <Link href={`/manage/${event._id}`}>
+                  <a href={`/manage/${event._id}`}>Manage</a>
+                </Link>
               </Menu.Item>
-              <Menu.Item
-                onClick={() => {
-                  console.log("cmon man");
-                  this.props.dispatch({ type: "edit_event", payload: event });
-                }}
-                key="3"
-              >
-                <Link href={`/cre`}>Edit</Link>
+              <Menu.Item key="3">
+                <Link href={`/edit`}>
+                  <a href={`/edit`}>Edit</a>
+                </Link>
               </Menu.Item>
               <Menu.Item key="4">
                 {" "}

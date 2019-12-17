@@ -32,17 +32,12 @@ class AccountSettings extends Component {
       })
       .then(res => {
         // if(res.data.length!=0){
-        message.success("Successfully created!");
+        message.success("Successfully updated!");
         console.log(res);
         this.props.dispatch({
-          type: "fetch_events",
-          payload: res.data
+          type: "fetch_user",
+          payload: { user: res.data }
         });
-        window.location = "/myevents";
-        // }
-        // else {
-        //   console.log("ERROR- event:", res.data)
-        // }
       })
       .catch(err => {
         console.log(err);

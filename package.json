@@ -80,7 +80,7 @@
     "xhr2": "0.1.4"
   },
   "scripts": {
-    "dev": "NODE_ENV=dev node server.js",
+    "dev": "now dev",
     "build": "next build",
     "start": "now"
   },
@@ -88,6 +88,9 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
+  },
+  "engines": {
+    "node": "12.x"
   },
   "lint-staged": {
     "*.{js,css,json,md}": [

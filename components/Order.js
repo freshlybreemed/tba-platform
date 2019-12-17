@@ -409,7 +409,7 @@ class Order extends Component {
     const menu = (
       <Menu>
         <Menu.Item key={0}>
-          <Link>Edit Info</Link>
+          <a>Edit Info</a>
         </Menu.Item>
 
         <Menu.Item key={1}>
@@ -418,7 +418,7 @@ class Order extends Component {
           </Popconfirm>
         </Menu.Item>
         <Menu.Item key={1}>
-          <Link>Transfer</Link>
+          <a>Transfer</a>
         </Menu.Item>
       </Menu>
     );

@@ -4,13 +4,8 @@ const axios = require("axios");
 const { parse } = require("url");
 const connect = require("./db");
 const ObjectId = require("mongodb").ObjectID;
-const redirect = require("micro-redirect");
 const cors = require("micro-cors")();
-
-const wrapAsync = handler => (req, res) =>
-  handler(req)
-    .then(result => res.json(result))
-    .catch(error => res.status(500).json({ error: error.message }));
+const { wrapAsync } = require("../handlers/lib");
 
 const dispatchTicket = async eventCheckout => {
   var tickets = [];
@@ -66,35 +61,38 @@ const updateTixCount = async (cart, eventId, charges) => {
   );
 };
 
-const ticketApi = wrapAsync(async req => {
+const ticketApi = wrapAsync(async (req, db) => {
   try {
     const charges = [];
     const body = await json(req);
     console.log(body);
-    let { eventCheckout, token } = body;
+    let { eventCheckoutForm, token } = body;
     let cart = {};
-    for (let tix in eventCheckout.cart) {
-      cart[tix] = eventCheckout.cart[tix].quantity;
+    for (let tix in eventCheckoutForm.cart) {
+      cart[tix] = eventCheckoutForm.cart[tix].quantity;
     }
-    eventCheckout.total = parseInt(eventCheckout.total * 100);
-    delete eventCheckout.cart;
+    eventCheckoutForm.total = parseInt(eventCheckoutForm.total * 100);
+    delete eventCheckoutForm.cart;
     const obj = {
-      ...eventCheckout,
+      ...eventCheckoutForm,
       ...cart
     };
-    const db = connect();
-    db.collection("users").findOne({ _id: ObjectId() });
     charges.push(
       await stripe.charges.create({
-        amount: total,
+        amount: eventCheckoutForm.total,
         currency: "usd",
-        description: `TBA Ticket - ${eventCheckout.title}`,
+        description: `TBA - ${eventCheckoutForm.title}`,
         source: token.id,
-        metadata: obj
+        metadata: Object.assign({}, obj, { status: "complete" })
       })
     );
-    const event = await updateTixCount(cart, eventCheckout.eventId, charges);
-    dispatchTicket(eventCheckout);
+    console.log("charges", charges);
+    const event = await updateTixCount(
+      cart,
+      eventCheckoutForm.eventId,
+      charges
+    );
+    dispatchTicket(eventCheckoutForm);
     return event;
   } catch (err) {
     console.log(err);
@@ -116,7 +114,7 @@ const updateAndSaveApi = async (id, list) => {
   console.log("updated:");
   console.log(result);
 };
-const updateApi = async (req, res) => {
+const updateApi = wrapAsync(async (req, db) => {
   let event = json(req);
   let charges = [];
   await stripe.charges
@@ -124,10 +122,7 @@ const updateApi = async (req, res) => {
     .autoPagingEach(customer => {
       charges.push(customer);
     });
-  const database = await connect();
-  const collection = await database.collection("tba");
-  console.log("updating");
-  let result = await collection.findOneAndUpdate(
+  let result = await db.collection.findOneAndUpdate(
     {
       _id: ObjectId(event._id)
     },
@@ -139,8 +134,8 @@ const updateApi = async (req, res) => {
     }
   );
 
-  send(res, 200, result);
-};
+  return result;
+});
 const balanceApi = async (req, res) => {
   const { query } = parse(req.url, true);
   const collection = await connect().collection("tba");

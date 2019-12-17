@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 import MyEvents from "../components/MyEvents";
 import fetch from "isomorphic-unfetch";
 import { AUTH_CONFIG } from "../lib/auth0-variables";
+import axios from "axios";
 
 const host = AUTH_CONFIG.host;
 class MyEventsPage extends Component {
@@ -23,17 +24,13 @@ class MyEventsPage extends Component {
   }
 
   async componentDidMount() {
-    const { user } = this.props;
-
     var user_data = localStorage.getItem("user_details");
     var isLoggedIn = localStorage.getItem("isLoggedIn");
     const data = JSON.parse(user_data);
     if (isLoggedIn) {
       console.log(`logged in `);
-      const res = await fetch(`${host}/api/events/${data.sub}`);
-      const resUser = await fetch(`${host}/api/user/${data.sub}`);
-      const events = await res.json();
-
+      const res = await axios.get(`/api/events/${data.sub}`);
+      const events = res.data;
       this.props.dispatch({
         type: "fetch_events",
         payload: events

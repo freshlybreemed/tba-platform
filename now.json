@@ -5,23 +5,15 @@
   "builds": [
     {
       "src": "server/handlers/get.js",
-      "use": "@now/node",
-      "config": { "maxLambdaSize": "50mb" }
+      "use": "@now/node"
     },
     {
       "src": "server/handlers/post.js",
-      "use": "@now/node",
-      "config": { "maxLambdaSize": "50mb" }
-    },
-    {
-      "src": "server/helpers/events.js",
-      "use": "@now/node",
-      "config": { "maxLambdaSize": "50mb" }
+      "use": "@now/node"
     },
     {
       "src": "package.json",
-      "use": "@now/next",
-      "config": { "maxLambdaSize": "50mb" }
+      "use": "@now/next"
     }
   ],
   "routes": [
@@ -43,17 +35,17 @@
     {
       "src": "/api/event/(.*)",
       "methods": ["GET"],
-      "dest": "server/handlers/get.js?id=$1"
+      "dest": "server/handlers/get.js?slug=$1"
     },
     {
       "src": "/api/events/(.*)",
       "methods": ["GET"],
-      "dest": "server/handlers/get.js?id=$1"
+      "dest": "server/handlers/get.js?sub=$1"
     },
     {
       "src": "/api/user/(.*)",
       "methods": ["GET"],
-      "dest": "server/handlers/get.js?id=$1"
+      "dest": "server/handlers/get.js?sub=$1"
     },
     {
       "src": "/api/balance/(.*)",

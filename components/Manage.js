@@ -416,14 +416,16 @@ class Manage extends Component {
       boxShadow: "none"
     };
     return tickets.map(type => {
-      const percentage = (
-        (1 -
-          ticketTypes[type].currentQuantity /
-            ticketTypes[type].startingQuantity) *
-        100
-      )
-        .toString()
-        .split(".")[0];
+      const percentage = parseInt(
+        (
+          (1 -
+            ticketTypes[type].currentQuantity /
+              ticketTypes[type].startingQuantity) *
+          100
+        )
+          .toString()
+          .split(".")[0]
+      );
       return (
         <Card.Grid hoverable={false} style={gridStyle} bordered={false}>
           <Text strong>{ticketTypes[type].name}</Text>
@@ -454,7 +456,6 @@ class Manage extends Component {
     let count = 0;
     for (let order in event.tickets) {
       const person = event.tickets[order];
-      console.log("name", person.metadata.firstName);
       const date = new Date(person.created * 1000).toString();
       recentOrders.push({
         key: String(person.created).substring(5),
@@ -561,7 +562,7 @@ class Manage extends Component {
             <StatCard
               type="fill"
               title="Tixs Sold"
-              value={this.state.totalTicketCount}
+              value={this.state.totalTicketCount.toString()}
               icon={<BarChart size={20} strokeWidth={1} />}
               color={theme.primaryColor}
             />
@@ -581,7 +582,7 @@ class Manage extends Component {
               title="24-Hour Sales"
               value={
                 this.state.ticketDayCount
-                  ? this.state.ticketDayCount +
+                  ? this.state.ticketDayCount.toString +
                     (this.state.ticketDayCount > 1 ? " Tickets" : " Ticket")
                   : "0"
               }
@@ -593,7 +594,7 @@ class Manage extends Component {
             <StatCard
               type="fill"
               title="Pageviews"
-              value={870}
+              value={"870"}
               icon={<Tv size={20} strokeWidth={1} />}
               color={theme.errorColor}
             />

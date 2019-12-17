@@ -115,7 +115,7 @@ class Event extends Component {
             value={json.title}
             valueStyle={{ color: "#000000" }}
           />
-          {this.props.eventCheckoutForm.status === "pending" ? (
+          {this.props.eventCheckoutForm.status === "pending" && (
             <>
               <Row gutter={8}>
                 <Col span={12}>
@@ -146,11 +146,27 @@ class Event extends Component {
                 </Col>
               </Row>
             </>
-          ) : (
+          )}
+          {this.props.eventCheckoutForm.status === "complete" && (
             <Result
               status="success"
               title="Successfully Purchased Tickets"
               subTitle={`Your order with ${json.title} has been successfully posted. Your receipt will be emailed to you at ${eventCheckoutForm.emailAddress}.`}
+              extra={
+                [
+                  // <Button type="primary" key="console">
+                  //   Go Console
+                  // </Button>,
+                  // <Button key="buy">Buy Again</Button>
+                ]
+              }
+            />
+          )}
+          {this.props.eventCheckoutForm.status === "failure" && (
+            <Result
+              status="warning"
+              title="There was an issue processing your payment."
+              subTitle={`Please try again`}
               extra={
                 [
                   // <Button type="primary" key="console">

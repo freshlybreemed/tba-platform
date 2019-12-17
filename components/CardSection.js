@@ -80,12 +80,22 @@ class _CardForm extends React.Component {
             })
             .then(res => {
               console.log(res.data);
-              this.props.dispatch({
-                type: "complete_checkout",
-                payload: {
-                  status: "complete"
-                }
-              });
+              if (!res.data.decline_code) {
+                this.props.dispatch({
+                  type: "complete_checkout",
+                  payload: {
+                    status: "complete"
+                  }
+                });
+              } else {
+                this.props.dispatch({
+                  type: "complete_checkout",
+                  payload: {
+                    status: "failure",
+                    stripe: res.data
+                  }
+                });
+              }
             });
         });
     } else {

@@ -4,41 +4,22 @@ const axios = require("axios");
 const { parse } = require("url");
 const ObjectId = require("mongodb").ObjectId;
 const cors = require("micro-cors")();
-
+const { wrapAsync } = require("../handlers/lib");
 const headers = {
   Authorization: "Token " + process.env.REACT_APP_GUEST_PASS_KEY,
   "Content-Type": "application/json"
 };
-const wrapAsync = handler => (req, res) => {
-  res.setHeader("cache-control", "s-maxage=1 maxage=0, stale-while-revalidate");
 
-  return handler(req)
-    .then(result => {
-      res.setHeader(
-        "cache-control",
-        "s-maxage=1 maxage=0, stale-while-revalidate"
-      );
-      return res.json(result);
-    })
-    .catch(error => res.status(500).json({ error: error.message }));
-};
-
-const events = async (req, res) => {
+const events = wrapAsync(async function(req, db) {
   const { query } = parse(req.url, true);
-  const slug = query.id;
+  const slug = query.slug;
   console.log("slug", slug);
-  // Set caching headers to serve stale content (if over a second old)
-  // while revalidating fresh content in the background
-  res.setHeader("cache-control", "s-maxage=1 maxage=0, stale-while-revalidate");
-
-  const db = await connect();
-  const collection = await db.collection("tba");
-  const event = ObjectId.isValid(slug)
-    ? await collection.find({ _id: ObjectId(slug) }).toArray()
-    : await collection.find({ slug }).toArray();
-  send(res, 200, event);
-};
-const create = async (req, res) => {
+  return db
+    .collection("tba")
+    .find({ $or: [{ _id: ObjectId(slug) }, { slug }] })
+    .toArray();
+});
+const create = wrapAsync(async function(req, db) {
   // Set caching headers to serve stale content (if over a second old)
   // while revalidating fresh content in the background
   res.setHeader("cache-control", "s-maxage=1 maxage=0, stale-while-revalidate");
@@ -127,21 +108,16 @@ const create = async (req, res) => {
         return event;
       }
     );
-  send(res, 200, newEvent);
-};
+  return newEvent;
+});
 
-const eventsByOrganizer = wrapAsync(async function(req) {
+const eventsByOrganizer = wrapAsync(async function(req, db) {
   const { query } = parse(req.url, true);
-  // Set caching headers to serve stale content (if over a second old)
-  // while revalidating fresh content in the background
-  // console.log('we got it')
-  const database = await connect();
-  const collection = await database.collection("tba");
-
-  const events = await collection.find({ organizerId: query.id }).toArray();
-  console.log(events);
-  //   // Respond with a JSON string of all users in the collection
-  return events;
+  const sub = query.sub;
+  return db
+    .collection("tba")
+    .find({ organizerId: sub })
+    .toArray();
 });
 
 module.exports = {
