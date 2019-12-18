@@ -7,10 +7,16 @@ const ObjectId = require("mongodb").ObjectID;
 const cors = require("micro-cors")();
 const { wrapAsync } = require("../handlers/lib");
 
+const headers = {
+  Authorization: `Token ${process.env.REACT_APP_GUEST_PASS_KEY}`,
+  "Content-Type": "application/json"
+};
+
 const dispatchTicket = async eventCheckout => {
   var tickets = [];
   let quantity = 0;
   let ticketId = "";
+  let guestmanager = [];
   for (var item in eventCheckout.cart) {
     quantity = eventCheckout.cart[item].quantity;
     ticketId = eventCheckout.cart[item].id;
@@ -25,7 +31,7 @@ const dispatchTicket = async eventCheckout => {
               event_id: eventCheckout.guestId,
               name: `${eventCheckout.firstName} ${eventCheckout.lastName}`,
               email: eventCheckout.emailAddress,
-              dispatch: true
+              dispatch: false
             }
           },
           headers
@@ -33,6 +39,7 @@ const dispatchTicket = async eventCheckout => {
           .then(ticket => {
             console.log("ticket success");
             console.log(ticket);
+            guestmanager.push(ticket.data);
           })
           .catch(err => {
             console.log("err");
@@ -42,20 +49,27 @@ const dispatchTicket = async eventCheckout => {
     }
   }
   await Promise.all(tickets);
+  return guestmanager;
 };
 
-const updateTixCount = async (cart, eventId, charges) => {
+const updateTixCount = async (cart, eventId, charges, guestInfo) => {
   const obj = {};
   for (var tix in cart) {
     const key = `ticketTypes.${tix}.currentQuantity`;
     obj[key] = -cart[tix];
   }
+  console.log("beans", Object.assign({}, charges[0], { guestInfo }));
   const db = await connect();
   return await db.collection("tba").findOneAndUpdate(
     { _id: ObjectId(eventId) },
     {
       $inc: obj,
-      $push: { tickets: { $each: charges, $position: 0 } },
+      $push: {
+        tickets: {
+          $each: [Object.assign({}, charges[0], { guestInfo })],
+          $position: 0
+        }
+      },
       $set: { updatedAt: parseInt(new Date() / 1000) }
     }
   );
@@ -71,28 +85,28 @@ const ticketApi = wrapAsync(async (req, db) => {
     for (let tix in eventCheckoutForm.cart) {
       cart[tix] = eventCheckoutForm.cart[tix].quantity;
     }
-    eventCheckoutForm.total = parseInt(eventCheckoutForm.total * 100);
-    delete eventCheckoutForm.cart;
     const obj = {
       ...eventCheckoutForm,
       ...cart
     };
+    delete obj.cart;
+    obj.status = "Successfully purchased";
     charges.push(
       await stripe.charges.create({
-        amount: eventCheckoutForm.total,
+        amount: eventCheckoutForm.total * 100,
         currency: "usd",
-        description: `TBA - ${eventCheckoutForm.title}`,
+        description: `TBA Ticket - ${eventCheckoutForm.title}`,
         source: token.id,
-        metadata: Object.assign({}, obj, { status: "complete" })
+        metadata: obj
       })
     );
-    console.log("charges", charges);
+    const guestInfo = await dispatchTicket(eventCheckoutForm);
     const event = await updateTixCount(
       cart,
       eventCheckoutForm.eventId,
-      charges
+      charges,
+      guestInfo
     );
-    dispatchTicket(eventCheckoutForm);
     return event;
   } catch (err) {
     console.log(err);

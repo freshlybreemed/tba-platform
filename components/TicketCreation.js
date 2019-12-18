@@ -118,6 +118,13 @@ class TicketCreation extends React.Component {
     this.setState({ visible: true });
   };
 
+  editTicket = tix => {
+    const { form } = this.formRef.props;
+    this.setState({ visible: true });
+    form.setFieldsValue(tix);
+    console.log("edit", form.getFieldsValue());
+    this.saveFormRef();
+  };
   handleCancel = () => {
     this.setState({ visible: false });
   };
@@ -127,9 +134,9 @@ class TicketCreation extends React.Component {
       if (err) {
         return;
       }
-      console.log("Received values of form: ", values);
       let formFields = values;
       formFields.currentQuantity = values.startingQuantity;
+      //ticketing fees
       formFields.fees = values.price * 0.032 + 1.3;
       let tickets = { ...this.props.tickets };
       tickets[values.name] = formFields;
@@ -151,6 +158,7 @@ class TicketCreation extends React.Component {
     });
   };
   saveFormRef = formRef => {
+    console.log("saving", formRef);
     this.formRef = formRef;
   };
 
@@ -172,13 +180,16 @@ class TicketCreation extends React.Component {
               <List.Item
                 actions={[
                   <a onClick={() => this.removeTicket(item.name)}>delete</a>,
-                  <a onClick={this.showModal}>edit</a>
+                  <a onClick={() => this.editTicket(item)}>edit</a>
                 ]}
               >
                 <List.Item.Meta
                   avatar={<Avatar icon="tag" />}
-                  title={<a href="https://ant.design">{item.name}</a>}
+                  title={item.name}
                   description={item.description}
+                />
+                <List.Item.Meta
+                  title={`Quantity: ${item.currentQuantity}/${item.startingQuantity}`}
                 />
                 <div>{item.price === 0 ? "Free" : `$${item.price}`}</div>
               </List.Item>

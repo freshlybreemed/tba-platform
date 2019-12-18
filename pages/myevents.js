@@ -28,10 +28,8 @@ class MyEventsPage extends Component {
     var isLoggedIn = localStorage.getItem("isLoggedIn");
     const data = JSON.parse(user_data);
     if (isLoggedIn) {
-      console.log(`logged in `);
       this.setState({ loading: false });
     } else {
-      console.log(`not logged in `);
       this.setState({ loading: false });
     }
   }

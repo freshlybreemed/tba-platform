@@ -602,11 +602,13 @@ class Manage extends Component {
           </Col>
         </Row>
         <Card title="Recent Orders">
-          <Table
-            columns={isMobile ? ordersMobileColumns : ordersDesktopColumns}
-            {...{ pagination: false }}
-            dataSource={this.renderRecentOrders()}
-          />
+          <ConfigProvider renderEmpty={() => customizeRenderEmpty("Sales")}>
+            <Table
+              columns={isMobile ? ordersMobileColumns : ordersDesktopColumns}
+              {...{ pagination: false }}
+              dataSource={this.renderRecentOrders()}
+            />
+          </ConfigProvider>
         </Card>
         {/* <Card title="Payouts">
                 <ConfigProvider renderEmpty={() => customizeRenderEmpty('Payouts')}>

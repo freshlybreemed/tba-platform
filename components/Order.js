@@ -454,8 +454,6 @@ class Order extends Component {
                     )}`
                   : "Not Sent Yet"
               }`}</Descriptions.Item>
-
-              {/* <Table columns={ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} /> */}
             </Descriptions>
             <span>
               <Button
@@ -493,12 +491,6 @@ class Order extends Component {
                 Edit Info
               </Button>
               <Button style={{ marginRight: 8 }}>Resend Ticket</Button>
-
-              {/* <Dropdown overlay={menu}>
-                <Button>
-                  Actions <Icon type="down" />
-                </Button>
-              </Dropdown> */}
             </span>
           </Card>
         </Row>

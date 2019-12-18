@@ -91,7 +91,6 @@ class MyEvents extends Component {
 
   render() {
     const { events, loading, dispatch } = this.props;
-    console.log(events);
     const desktopColumns = [
       {
         title: "Event",
@@ -254,29 +253,22 @@ class MyEvents extends Component {
         title: "Status",
         dataIndex: "eventStatus",
         key: "status",
-        render: (text, event) => {
-          console.log(
-            event.title,
-            event.startDate,
-            new Date(event.startDate).getTime(),
-            new Date().getTime()
-          );
-          let status = "";
-          if (
-            new Date(event.startDate).getTime() > new Date().getTime() &&
-            event.eventStatus !== "draft"
-          )
-            status = <Badge status="success" text="Live" />;
-          if (event.eventStatus === "draft")
-            status = <Badge status="processing" text="Draft" />;
+        render: (text, event) => (
+          <>
+            {new Date(event.startDate).getTime() > new Date().getTime() &&
+              event.eventStatus !== "draft" && (
+                <Badge status="success" text="Live" />
+              )}
 
-          if (
-            new Date(event.startDate).getTime() < new Date().getTime() &&
-            event.eventStatus !== "draft"
-          )
-            status = <Badge status="default" text="Sale Ended" />;
-          return <>{status}</>;
-        }
+            {event.eventStatus === "draft" && (
+              <Badge status="processing" text="Draft" />
+            )}
+            {new Date(event.startDate).getTime() < new Date().getTime() &&
+              event.eventStatus !== "draft" && (
+                <Badge status="default" text="Sale Ended" />
+              )}
+          </>
+        )
       },
       {
         title: "Action",
@@ -296,8 +288,8 @@ class MyEvents extends Component {
                 </Link>
               </Menu.Item>
               <Menu.Item key="3">
-                <Link href={`/edit`}>
-                  <a href={`/edit`}>Edit</a>
+                <Link href={`/edit/${event._id}`}>
+                  <a href={`/edit/${event._id}`}>Edit</a>
                 </Link>
               </Menu.Item>
               <Menu.Item key="4">

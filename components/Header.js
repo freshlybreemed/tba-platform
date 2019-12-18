@@ -176,5 +176,4 @@ const MainHeader = () => {
   );
 };
 
-console.log(isLoggedIn());
 export default connect()(MainHeader);

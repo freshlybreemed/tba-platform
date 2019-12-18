@@ -364,14 +364,6 @@ class PayoutSettings extends Component {
                 </Select>
               )}
             </FormItem>
-          </Form>
-        </Card>
-        <Card
-          title="Bank Info"
-          className="mb-4"
-          bodyStyle={{ padding: "1rem" }}
-        >
-          <Form onSubmit={this.handleSubmit}>
             <FormItem {...formItemLayout} label="Preferred Payout Method">
               {getFieldDecorator("accountSettingsForm.payoutMethod", {
                 rules: [

@@ -197,7 +197,6 @@ class Create extends React.Component {
       })
       .then(res => {
         message.success("Successfully updated!");
-        console.log(res);
         this.props.dispatch({
           type: "fetch_events",
           payload: res.data
@@ -581,7 +580,7 @@ class Create extends React.Component {
         </FormItem>
         <FormItem
           {...formItemLayout}
-          label="URL"
+          label="Event URL"
           validateStatus={getFieldError("createdEventForm.slug") ? "error" : ""}
           help={
             getFieldError("createdEventForm.slug")
