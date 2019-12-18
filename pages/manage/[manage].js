@@ -2,9 +2,7 @@ import Manage from "../../components/Manage";
 import { connect } from "react-redux";
 import Head from "next/head";
 import fetch from "isomorphic-unfetch";
-import { AUTH_CONFIG } from "../../lib/auth0-variables";
-
-const host = AUTH_CONFIG.host;
+import absoluteUrl from "next-absolute-url";
 
 const ManagePage = ({ data, errorCode }) => {
   var response;
@@ -27,7 +25,9 @@ const ManagePage = ({ data, errorCode }) => {
 };
 ManagePage.getInitialProps = async context => {
   const { manage } = context.query;
-  const res = await fetch(`${host}/api/event/${manage}`);
+  const { origin } = absoluteUrl(context.req);
+
+  const res = await fetch(`${origin}/api/event/${manage}`);
   const json = await res.json();
   const errorCode = json.length === 1 ? 200 : 404;
   context.store.dispatch({

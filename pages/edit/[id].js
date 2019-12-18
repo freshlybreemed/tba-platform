@@ -3,9 +3,7 @@ import Head from "next/head";
 import fetch from "isomorphic-unfetch";
 
 import { connect } from "react-redux";
-import { AUTH_CONFIG } from "../../lib/auth0-variables";
-
-const host = AUTH_CONFIG.host;
+import absoluteUrl from "next-absolute-url";
 const CreatePage = ({ data, errorCode }) => {
   var response;
   switch (errorCode) {
@@ -31,14 +29,13 @@ const CreatePage = ({ data, errorCode }) => {
 };
 
 CreatePage.getInitialProps = async context => {
+  const { origin } = absoluteUrl(context.req);
+
   const { id } = context.query;
-  const res = await fetch(`${host}/api/event/${id}`);
+  const res = await fetch(`${origin}/api/event/${id}`);
   const json = await res.json();
   console.log(json);
   const errorCode = json.length === 1 ? 200 : 404;
-  // console.log("fuck", context.store.dispatch);
-  // context.store.dispatch({ type: "edit_event", payload: json[0] });
-
   return { data: json[0], errorCode };
 };
 

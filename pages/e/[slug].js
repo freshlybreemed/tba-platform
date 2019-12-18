@@ -3,10 +3,9 @@ import Head from "next/head";
 import Event from "../../components/Event";
 import fetch from "isomorphic-unfetch";
 import { connect } from "react-redux";
-import { AUTH_CONFIG } from "../../lib/auth0-variables";
+import absoluteUrl from "next-absolute-url";
 import axios from "axios";
 
-const host = AUTH_CONFIG.host;
 const EventPage = ({ json, geo, errorCode }) => {
   var response;
   switch (errorCode) {
@@ -51,7 +50,9 @@ const EventPage = ({ json, geo, errorCode }) => {
 };
 EventPage.getInitialProps = async context => {
   const { slug } = context.query;
-  const res = await fetch(`${host}/api/event/${slug}`);
+  const { origin } = absoluteUrl(context.req);
+
+  const res = await fetch(`${origin}/api/event/${slug}`);
   const json = await res.json();
   const errorCode = json.length === 1 ? 200 : 404;
   let geo = "";

@@ -22,10 +22,8 @@ const events = wrapAsync(async function(req, db) {
 const create = wrapAsync(async function(req, db) {
   // Set caching headers to serve stale content (if over a second old)
   // while revalidating fresh content in the background
-  res.setHeader("cache-control", "s-maxage=1 maxage=0, stale-while-revalidate");
-
-  const { event } = req.body;
-  console.log(event);
+  const { data } = req.body;
+  const event = data;
   delete event.endTime;
   delete event.startTime;
 
