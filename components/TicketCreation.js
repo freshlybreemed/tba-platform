@@ -84,24 +84,24 @@ class TicketCreateForm extends React.Component {
           <Form.Item label="Description">
             {getFieldDecorator("description")(<Input type="textarea" />)}
           </Form.Item>
-          <Form.Item label="Show guests number of remaining tickets">
+          {/* <Form.Item label="Show guests number of remaining tickets">
             {getFieldDecorator("showRemaining", {})(<Checkbox />)}
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item label="Ticket Type">
-            {/* {getFieldDecorator('type', {
+            {getFieldDecorator("type", {
               initialValue: "free",
-              getValueFromEvent: (e) => {
-                if(e.target.value === 'free'){
-                  setFieldsValue({"price": 0})
+              getValueFromEvent: e => {
+                if (e.target.value === "free") {
+                  setFieldsValue({ price: 0 });
                 }
-                return e.target.value
+                return e.target.value;
               }
-            })( */}
-            <Radio.Group>
-              <Radio value="free">Free</Radio>
-              <Radio value="paid">Paid</Radio>
-            </Radio.Group>
-            {/* )} */}
+            })(
+              <Radio.Group>
+                <Radio value="free">Free</Radio>
+                <Radio value="paid">Paid</Radio>
+              </Radio.Group>
+            )}
           </Form.Item>
         </Form>
       </Modal>
@@ -111,19 +111,9 @@ class TicketCreateForm extends React.Component {
 
 class TicketCreation extends React.Component {
   state = {
-    visible: false,
-    ticketTypes: {},
-    tixArray: []
+    visible: false
   };
-  componentDidMount() {
-    console.log("porppy", this.props);
-    let tickets = { ...this.props.tickets };
-    const tixArray = [];
-    for (var tix in tickets) {
-      tixArray.push(tickets[tix]);
-    }
-    this.setState({ tixArray });
-  }
+
   showModal = () => {
     this.setState({ visible: true });
   };
@@ -143,23 +133,15 @@ class TicketCreation extends React.Component {
       formFields.fees = values.price * 0.032 + 1.3;
       let tickets = { ...this.props.tickets };
       tickets[values.name] = formFields;
-      const tixArray = [];
-      for (var tix in tickets) {
-        tixArray.push(tickets[tix]);
-      }
       form.resetFields();
-      console.log(tickets);
       let ticket = {};
       ticket[formFields.name] = formFields;
       this.props.dispatch({
         type: "ticket_creation",
         payload: ticket
       });
-      this.setState({ visible: false, tixArray }, () =>
-        console.log(this.state)
-      );
+      this.setState({ visible: false }, () => console.log(this.state));
     });
-    console.log("creation", this.props);
   };
 
   removeTicket = tix => {
@@ -167,21 +149,12 @@ class TicketCreation extends React.Component {
       type: "ticket_deletion",
       payload: tix
     });
-    const tixArray = this.state.tixArray.filter(ticket => {
-      return ticket.name !== tix;
-    });
-    let tickets = {};
-    tixArray.forEach(ticket => {
-      tickets[ticket.name] = ticket;
-    });
-    this.setState({ tixArray }, () => console.log(this.state));
   };
   saveFormRef = formRef => {
     this.formRef = formRef;
   };
 
   render() {
-    console.log("props", this.state);
     const customizeRenderEmpty = () => (
       <div style={{ textAlign: "center" }}>
         <Icon type="smile" style={{ fontSize: 20 }} />
@@ -194,7 +167,7 @@ class TicketCreation extends React.Component {
         <ConfigProvider renderEmpty={customizeRenderEmpty}>
           <List
             itemLayout="horizontal"
-            dataSource={this.state.tixArray}
+            dataSource={this.props.tixArray}
             renderItem={item => (
               <List.Item
                 actions={[
@@ -251,8 +224,15 @@ TicketCreateForm = connect(state => {
 );
 
 TicketCreation = connect(state => {
+  console.log("state", state);
+  let tickets = { ...state.createdEventForm.ticketTypes };
+  const tixArray = [];
+  for (var tix in tickets) {
+    tixArray.push(tickets[tix]);
+  }
   return {
-    tickets: state.createdEventForm.ticketTypes
+    tickets: state.createdEventForm.ticketTypes,
+    tixArray
   };
 })(TicketCreation);
 
