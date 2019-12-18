@@ -32,34 +32,7 @@ import axios from "axios";
 const host = AUTH_CONFIG.host;
 
 const FormItem = Form.Item;
-const AutoCompleteOption = AutoComplete.Option;
-const initialText = `<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>`;
 
-const slugify = string => {
-  if (!string) {
-    console.log("empty", string);
-    return "";
-  }
-  const a = "àáäâãåèéëêìíïîòóöôùúüûñçßÿœæŕśńṕẃǵǹḿǘẍźḧ·/_,:;";
-  const b = "aaaaaaeeeeiiiioooouuuuncsyoarsnpwgnmuxzh------";
-  const p = new RegExp(a.split("").join("|"), "g");
-  const slug = string
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(p, c => b.charAt(a.indexOf(c))) // Replace special characters in a with b
-    .replace(/&/g, "-and-") // Replace & with ‘and’
-    .replace(/[^\w-]+/g, "") // Remove all non-word characters such as spaces or tabs
-    .replace(/--+/g, "-") // Replace multiple — with single -
-    .replace(/^-+/, "") // Trim — from start of text
-    .replace(/-+$/, ""); // Trim — from end of text
-  console.log("slug should  be", slug);
-  return slug;
-};
-
-const success = () => {
-  message.success("This is a success message");
-};
 class Create extends React.Component {
   static propTypes = {
     form: formShape,
@@ -197,7 +170,6 @@ class Create extends React.Component {
   handleLocationChange = address => {
     var event = { ...this.state.event };
     event.location.name = address;
-
     this.setState({ event }, () => console.log(this.state));
     var location = { ...this.props.formState.location };
     location.name = address;
