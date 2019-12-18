@@ -2,7 +2,7 @@ import { Button, Card, Row, Form, Input, message, Select } from "antd";
 import { Component } from "react";
 import Avatar from "./Upload";
 import { connect } from "react-redux";
-import { createForm, createFormField, formShape } from "rc-form";
+import { createForm, createFormField } from "rc-form";
 import axios from "axios";
 
 const FormItem = Form.Item;
@@ -32,17 +32,12 @@ class AccountSettings extends Component {
       })
       .then(res => {
         // if(res.data.length!=0){
-        message.success("Successfully created!");
+        message.success("Successfully updated!");
         console.log(res);
         this.props.dispatch({
-          type: "fetch_events",
-          payload: res.data
+          type: "fetch_user",
+          payload: { user: res.data }
         });
-        window.location = "/myevents";
-        // }
-        // else {
-        //   console.log("ERROR- event:", res.data)
-        // }
       })
       .catch(err => {
         console.log(err);
@@ -136,66 +131,7 @@ class AccountSettings extends Component {
             </FormItem>
           </Form>
         </Card>
-        <Card
-          title="Payout Settings"
-          className="mb-4"
-          bodyStyle={{ padding: "1rem" }}
-        >
-          <Form onSubmit={this.handleSubmit}>
-            <FormItem {...formItemLayout} label="Account Number">
-              {getFieldDecorator("accountSettingsForm.accountNumber", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem
-              validateStatus={
-                getFieldError("accountSettingsForm.routingNumber")
-                  ? "error"
-                  : ""
-              }
-              help={
-                getFieldError("accountSettingsForm.routingNumber")
-                  ? "Invalid routing number!"
-                  : ""
-              }
-              {...formItemLayout}
-              label="Routing Number"
-            >
-              {getFieldDecorator("accountSettingsForm.routingNumber", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  },
-                  {
-                    validator: validRoutingNumber
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Organizer Name">
-              {getFieldDecorator("accountSettingsForm.organizerName", {
-                rules: [
-                  {
-                    required: true,
-                    message: "Please input your event name!",
-                    whitespace: true
-                  }
-                ]
-              })(<Input />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Add a Profile Image">
-              <Avatar />
-            </FormItem>
-          </Form>
-        </Card>
+
         <Card
           title="Home Address"
           bodyStyle={{ padding: "1rem" }}
@@ -336,7 +272,7 @@ class AccountSettings extends Component {
 
 const mapStateToProps = state => {
   return {
-    accountSettings: state.accontSettings,
+    accountSettings: state.accountSettings,
     user: state.user,
     formState: {
       firstName: state.accountSettingsForm.firstName,
@@ -347,16 +283,7 @@ const mapStateToProps = state => {
       homeAddress2: state.accountSettingsForm.homeAddress2,
       country: state.accountSettingsForm.country,
       zipCode: state.accountSettingsForm.zipCode,
-      state: state.accountSettingsForm.state,
-      routingNumber: state.accountSettingsForm.routingNumber
-      //   // endDate: state.createdEventForm.endDate,
-      //   // startTime: state.createdEventForm.startTime,
-      //   // location: state.createdEventForm.location,
-      //   // endTime: state.createdEventForm.endTime,
-      //   // refundable: state.createdEventForm.refundable,
-      //   // organizer: state.createdEventForm.organizer,
-      //   // description: state.createdEventForm.description,
-      //   // eventStatus: state.createdEventForm.eventStatus
+      state: state.accountSettingsForm.state
     }
   };
 };
@@ -381,8 +308,7 @@ export default connect(mapStateToProps)(
           homeAddress2: createFormField(props.formState.homeAddress2),
           country: createFormField(props.formState.country),
           zipCode: createFormField(props.formState.zipCode),
-          state: createFormField(props.formState.state),
-          routingNumber: createFormField(props.formState.routingNumber)
+          state: createFormField(props.formState.state)
         }
       };
     }

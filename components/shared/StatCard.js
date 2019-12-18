@@ -1,6 +1,6 @@
-import { Button, Card, Col, Row } from 'antd';
+import { Button, Card, Col, Row } from "antd";
 
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
 const StatCard = ({ type, title, value, icon, color, clickHandler }) => {
   let before = null,
@@ -13,7 +13,7 @@ const StatCard = ({ type, title, value, icon, color, clickHandler }) => {
         size="large"
         type="primary"
         style={{ backgroundColor: color, borderColor: color }}
-        className={type !== 'fill' ? 'mr-4' : null}
+        className={type !== "fill" ? "mr-4" : null}
         onClick={clickHandler}
       >
         {icon}
@@ -22,21 +22,21 @@ const StatCard = ({ type, title, value, icon, color, clickHandler }) => {
   );
 
   if (icon) {
-    type === 'fill' ? (after = cardIcon) : (before = cardIcon);
+    type === "fill" ? (after = cardIcon) : (before = cardIcon);
   }
 
   return (
     <Card
       className="mb-4"
-      style={type === 'fill' ? { backgroundColor: color } : null}
+      style={type === "fill" ? { backgroundColor: color } : null}
     >
       <Row type="flex" align="middle" justify="start">
         {before}
         <Col>
-          <h5 className={`mb-0 ${type === 'fill' ? 'text-white' : null}`}>
+          <h5 className={`mb-0 ${type === "fill" ? "text-white" : null}`}>
             {value}
           </h5>
-          <small className={type === 'fill' ? 'text-white-50' : null}>
+          <small className={type === "fill" ? "text-white-50" : null}>
             {title}
           </small>
         </Col>
@@ -48,9 +48,9 @@ const StatCard = ({ type, title, value, icon, color, clickHandler }) => {
 };
 
 StatCard.propTypes = {
-  type: PropTypes.oneOf(['fill']),
+  type: PropTypes.oneOf(["fill"]),
   title: PropTypes.string,
-  value: PropTypes.number,
+  value: PropTypes.string,
   icon: PropTypes.element,
   color: PropTypes.string
 };

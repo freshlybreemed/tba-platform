@@ -1,7 +1,6 @@
 import { Button, Card, Col, Divider, Icon, Row } from "antd";
 
 import ExpenseCreation from "./ExpenseCreation";
-import MockInvoice from "../demos/mock/invoice";
 import { formatPrice } from "../lib/helpers";
 import { connect } from "react-redux";
 import { STATUS_CODES } from "http";
@@ -20,7 +19,7 @@ const Invoice = props => {
   const getFreshlyTax = () =>
     -invoice.reduce((sum, item) => sum + item.quantity * item.fees, 0);
 
-  const getTotal = () => getSubTotal() + getCalculatedTax();
+  const getTotal = () => getSubTotal();
   const ticketTypes = Object.keys(event.ticketTypes);
   const invoice = ticketTypes.map(ticket => {
     return {
@@ -82,6 +81,7 @@ const Invoice = props => {
     }
     return expenseRender;
   };
+  console.log("fees", getFreshlyTax());
   return (
     <>
       <Card
@@ -119,14 +119,6 @@ const Invoice = props => {
                   <li>Invoice #45789</li>
                   <li>November 05, 2019</li>
                 </ul>
-                {/* <ul className="list-unstyled">
-                  <li>1033 W Sherman Dr</li>
-                  <li>798 Mariana Isle</li>
-                  <li>Lake Maegan</li>
-                  <li>Wyoming</li>
-                  <li>00 263</li>
-                  <li>South Africa</li>
-                </ul> */}
               </Col>
             </Row>
           </div>
@@ -213,7 +205,7 @@ const Invoice = props => {
                 >
                   <small className="mr-auto text-muted">Service Fees</small>
                   <span className="text-right">
-                    {formatPrice(getFreshlyTax() * 0.32)}
+                    {formatPrice(getFreshlyTax() * 0.68)}
                   </span>
                 </Row>
                 <Divider className="m-0" />
@@ -227,20 +219,7 @@ const Invoice = props => {
                     Payment Processing Fees
                   </small>
                   <span className="text-right">
-                    {formatPrice(getFreshlyTax() * 0.68)}
-                  </span>
-                </Row>
-                <Divider className="m-0" />
-                <Row
-                  type="flex"
-                  justify="space-between"
-                  align="middle"
-                  className="py-4"
-                >
-                  <small className="mr-auto text-muted">Tax</small>
-                  <span>
-                    <small className="text-muted">@ {tax}% - </small>
-                    <span>{formatPrice(getCalculatedTax())}</span>
+                    {formatPrice(getFreshlyTax() * 0.32)}
                   </span>
                 </Row>
                 <Divider className="m-0" />
@@ -263,8 +242,8 @@ const Invoice = props => {
                   align="middle"
                   className="py-4"
                 >
-                  <small className="mr-auto text-muted">Net Sales</small>
-                  <strong>{formatPrice(getTotal())}</strong>
+                  <small className="mr-auto text-muted">Payout Amount</small>
+                  <strong>{formatPrice(getTotal() + getFreshlyTax())}</strong>
                 </Row>
                 <Divider className="m-0 bg-primary" />
               </div>

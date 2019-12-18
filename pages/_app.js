@@ -10,6 +10,7 @@ import Head from "next/head";
 import NProgress from "nprogress";
 import Page from "../components/Page";
 import Router from "next/router";
+import axios from "axios";
 import withRedux from "next-redux-wrapper";
 import { makeStore } from "../lib/store";
 import { AUTH_CONFIG } from "../lib/auth0-variables";
@@ -37,7 +38,7 @@ class MyApp extends App {
     pageProps.ieBrowser = ie;
     return { pageProps };
   }
-  componentDidMount() {
+  componentWillMount() {
     if (typeof localStorage !== "undefined") {
       var user_data = localStorage.getItem("user_details");
       var isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -45,12 +46,16 @@ class MyApp extends App {
         const data = JSON.parse(user_data);
         console.log(`logged in `);
         const login = async () => {
-          const resUser = await fetch(`${host}/api/user/${data.sub}`);
-          const user = await resUser.json();
-          console.log("user", user);
+          const resUser = await axios.get(`/api/user/${data.sub}`);
+          const resEvents = await axios.get(`/api/events/${data.sub}`);
+          const user = resUser.data;
+          const events = resEvents.data;
           this.props.store.dispatch({
             type: "fetch_user",
-            payload: user[0]
+            payload: {
+              user: user[0],
+              events
+            }
           });
         };
         login();

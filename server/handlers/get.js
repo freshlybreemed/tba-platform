@@ -7,19 +7,19 @@ const { balanceApi } = require("../helpers/payments");
 const { userQueryApi } = require("../helpers/user");
 
 const getApi = fn => async (req, res) => {
-  console.log("got it");
   console.log("req.url", req.url);
   try {
     const parse = req.url.split("/");
-    const path = `/${parse[1]}/${parse[2]}`;
+    const path = `/${parse[2]}`;
+    console.log("path", path);
     switch (path) {
-      case "/api/event":
+      case "/event":
         return await fn(events(req, res));
-      case "/api/events":
+      case "/events":
         return await fn(eventsByOrganizer(req, res));
-      case "/api/balance":
+      case "/balance":
         return await fn(balanceApi(req, res));
-      case "/api/user":
+      case "/user":
         return await fn(userQueryApi(req, res));
       default:
         return send(res, 200, { err: "invalid route" });

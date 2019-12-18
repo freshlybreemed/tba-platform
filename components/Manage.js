@@ -66,10 +66,10 @@ import StatCard from "./shared/StatCard";
 import WeatherCard from "./shared/WeatherCard";
 import styled from "styled-components";
 import { theme } from "./styles/GlobalStyles";
+import { getTime } from "../lib/helpers";
+
 import { isMobile } from "react-device-detect";
 import { AUTH_CONFIG } from "../lib/auth0-variables";
-
-import event from "../lib/event";
 
 const host = AUTH_CONFIG.host;
 
@@ -84,62 +84,6 @@ const generate = () => {
     arr.push({ x, y });
   });
   return arr;
-};
-
-const getTime = datetime => {
-  var months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  var days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  var dateTime = new Date(datetime);
-  var day = days[dateTime.getDay()];
-  var hr = dateTime.getHours();
-  var min = dateTime.getMinutes();
-  if (min < 10) {
-    min = "0" + min;
-  }
-  var ampm = "am";
-  if (hr > 12) {
-    hr -= 12;
-    ampm = "pm";
-  }
-  var date = dateTime.getDate();
-  if (date > 3 && date < 21) date = date + "th";
-  switch (date % 10) {
-    case 1:
-      date = date + "st";
-      break;
-    case 2:
-      date = date + "nd";
-      break;
-    case 3:
-      date = date + "rd";
-      break;
-    default:
-      break;
-  }
-  var month = months[dateTime.getMonth()];
-  var year = dateTime.getFullYear();
-  return day + ", " + month + " " + date;
 };
 
 const getTixQuantity = metadata => {
@@ -448,14 +392,11 @@ class Manage extends Component {
         }
       });
     }
-    this.setState(
-      {
-        ticketDayCount,
-        totalTicketCount,
-        totalBalance: totalBalance.toFixed(2)
-      },
-      () => console.log(this.state)
-    );
+    this.setState({
+      ticketDayCount,
+      totalTicketCount,
+      totalBalance: totalBalance.toFixed(2)
+    });
   };
   showModal = () => {
     this.setState({ visible: true });
@@ -469,21 +410,22 @@ class Manage extends Component {
   renderTicketTypes = () => {
     let ticketTypes = this.props.event.ticketTypes;
     const tickets = Object.keys(ticketTypes);
-    const spanCount = 24 / tickets.length;
     const gridStyle = {
       width: "25%",
       textAlign: "center",
       boxShadow: "none"
     };
     return tickets.map(type => {
-      const percentage = (
-        (1 -
-          ticketTypes[type].currentQuantity /
-            ticketTypes[type].startingQuantity) *
-        100
-      )
-        .toString()
-        .split(".")[0];
+      const percentage = parseInt(
+        (
+          (1 -
+            ticketTypes[type].currentQuantity /
+              ticketTypes[type].startingQuantity) *
+          100
+        )
+          .toString()
+          .split(".")[0]
+      );
       return (
         <Card.Grid hoverable={false} style={gridStyle} bordered={false}>
           <Text strong>{ticketTypes[type].name}</Text>
@@ -502,12 +444,14 @@ class Manage extends Component {
   renderRecentOrders = () => {
     let recentOrders = [];
 
-    const capitalize = text =>
-      text
+    const capitalize = text => {
+      if (!text) return "";
+      return text
         .toLowerCase()
         .split(" ")
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
+    };
     const { event } = this.props;
     let count = 0;
     for (let order in event.tickets) {
@@ -519,7 +463,7 @@ class Manage extends Component {
           person.metadata.lastName
         )}`,
         age: getTixQuantity(person.metadata),
-        date: getTime(date),
+        date: getTime(date, "date"),
         total: person.amount_refunded
           ? `-(${(person.amount / 100).toFixed(2)})`
           : `${(person.amount / 100).toFixed(2)}`,
@@ -531,57 +475,59 @@ class Manage extends Component {
     return recentOrders;
   };
   renderGraph = () => {
-    let render = this.props.event.tickets.map(order => {
-      return {
-        x: new Date(
-          `${new Date(order.created * 1000).getMonth().toString()}/${new Date(
-            order.created * 1000
-          )
-            .getDate()
-            .toString()}/${new Date(order.created * 1000)
-            .getFullYear()
-            .toString()}`
-        ),
-        y: (order.amount - order.amount_refunded) / 100
-      };
-    });
-    const days = {};
-    render.forEach((item, index, object) => {
-      days[item.x] = days[item.x] ? days[item.x] + item.y : item.y;
-    });
-    let graph = [];
-    for (var day in days) {
-      graph.push({
-        x: new Date(day),
-        y: days[day]
-      });
-    }
-    Date.prototype.addDays = function(days) {
-      var date = new Date(this.valueOf());
-      date.setDate(date.getDate() + days);
-      return date;
-    };
-
+    return [];
     var dateArray = new Array();
-    for (var metric in graph) {
-      dateArray.push(graph[metric]);
-      const metrica = parseInt(metric) + 1;
-      if (graph[metrica]) {
-        var currentDate = graph[metrica].x;
-        const array = [];
-        while (currentDate < graph[metric].x) {
-          currentDate = currentDate.addDays(1);
-          if (currentDate.getTime() !== graph[metric].x.getTime()) {
-            array.push({
-              x: new Date(currentDate),
-              y: 0
-            });
+    if (this.props.event.tickets) {
+      let render = this.props.event.tickets.map(order => {
+        return {
+          x: new Date(
+            `${new Date(order.created * 1000).getMonth().toString()}/${new Date(
+              order.created * 1000
+            )
+              .getDate()
+              .toString()}/${new Date(order.created * 1000)
+              .getFullYear()
+              .toString()}`
+          ),
+          y: (order.amount - order.amount_refunded) / 100
+        };
+      });
+      const days = {};
+      render.forEach((item, index, object) => {
+        days[item.x] = days[item.x] ? days[item.x] + item.y : item.y;
+      });
+      let graph = [];
+      for (var day in days) {
+        graph.push({
+          x: new Date(day),
+          y: days[day]
+        });
+      }
+      Date.prototype.addDays = function(days) {
+        var date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;
+      };
+
+      for (var metric in graph) {
+        dateArray.push(graph[metric]);
+        const metrica = parseInt(metric) + 1;
+        if (graph[metrica]) {
+          var currentDate = graph[metrica].x;
+          const array = [];
+          while (currentDate < graph[metric].x) {
+            currentDate = currentDate.addDays(1);
+            if (currentDate.getTime(date) !== graph[metric].x.getTime()) {
+              array.push({
+                x: new Date(currentDate),
+                y: 0
+              });
+            }
           }
+          dateArray = dateArray.concat(array.reverse());
         }
-        dateArray = dateArray.concat(array.reverse());
       }
     }
-
     return [dateArray];
   };
   onNearestX = (value, { index }) => {
@@ -616,10 +562,9 @@ class Manage extends Component {
             <StatCard
               type="fill"
               title="Tixs Sold"
-              value={this.state.totalTicketCount}
+              value={this.state.totalTicketCount.toString()}
               icon={<BarChart size={20} strokeWidth={1} />}
               color={theme.primaryColor}
-              clickHandler={() => message.info("Campaign stat button clicked")}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -629,43 +574,36 @@ class Manage extends Component {
               value={`$${this.state.totalBalance}`}
               icon={<DollarSign size={20} strokeWidth={1} />}
               color={theme.darkColor}
-              clickHandler={() => message.info("Customers stat button clicked")}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <StatCard
               type="fill"
               title="24-Hour Sales"
-              value={
-                this.state.ticketDayCount
-                  ? this.state.ticketDayCount +
-                    (this.state.ticketDayCount > 1 ? " Tickets" : " Ticket")
-                  : "0"
-              }
+              value={`${this.state.ticketDayCount} 
+                ${
+                  this.state.ticketDayCount === 0 ||
+                  this.state.ticketDayCount > 1
+                    ? " Tickets"
+                    : " Ticket"
+                }`}
               icon={<Bell size={20} strokeWidth={1} />}
               color={theme.warningColor}
-              clickHandler={() => message.info("Queries stat button clicked")}
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <StatCard
               type="fill"
               title="Pageviews"
-              value={870}
+              value={"870"}
               icon={<Tv size={20} strokeWidth={1} />}
               color={theme.errorColor}
-              clickHandler={() => message.info("Opens stat button clicked")}
             />
           </Col>
         </Row>
         <Card title="Recent Orders">
-          {/* <ConfigProvider renderEmpty={() => customizeRenderEmpty('Sales')}>
-                  <Table columns={isMobile? ordersMobileColumns: ordersDesktopColumns}  {...{pagination: false}} dataSource={this.renderRecentOrders()} />
-                </ConfigProvider> */}
-        </Card>
-        <Card>
           <Table
-            columns={ordersDesktopColumns}
+            columns={isMobile ? ordersMobileColumns : ordersDesktopColumns}
             {...{ pagination: false }}
             dataSource={this.renderRecentOrders()}
           />

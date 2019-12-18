@@ -25,7 +25,6 @@ class TeamMemberCreationForm extends React.Component {
 
   render() {
     const { visible, onCancel, onCreate, form } = this.props;
-    console.log("props", this.props);
     const {
       getFieldDecorator,
       getFieldValue,
@@ -161,7 +160,6 @@ class TeamMemberCreation extends React.Component {
     //     console.log(this.state),
     //   );
     // });
-    console.log("creation", this.props);
   };
 
   saveFormRef = formRef => {
@@ -169,7 +167,6 @@ class TeamMemberCreation extends React.Component {
   };
 
   render() {
-    console.log("props", this.state);
     const customizeRenderEmpty = () => (
       <div style={{ textAlign: "center" }}>
         {/* <Icon type="smile" style={{ fontSize: 20 }} /> */}

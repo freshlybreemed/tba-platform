@@ -47,7 +47,7 @@ import {
 } from "antd";
 
 import axios from "axios";
-import { formatPrice } from "../lib/helpers";
+import { formatPrice, getTime } from "../lib/helpers";
 
 import { Component } from "react";
 import { withRouter } from "next/router";
@@ -56,8 +56,6 @@ import styled from "styled-components";
 import { theme } from "./styles/GlobalStyles";
 import { isMobile } from "react-device-detect";
 import { AUTH_CONFIG } from "../lib/auth0-variables";
-
-import event from "../lib/event";
 
 const host = AUTH_CONFIG.host;
 const { confirm } = Modal;
@@ -75,62 +73,6 @@ const generate = () => {
     arr.push({ x, y });
   });
   return arr;
-};
-
-const getTime = datetime => {
-  var months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  var days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  var dateTime = new Date(datetime);
-  var day = days[dateTime.getDay()];
-  var hr = dateTime.getHours();
-  var min = dateTime.getMinutes();
-  if (min < 10) {
-    min = "0" + min;
-  }
-  var ampm = "am";
-  if (hr > 12) {
-    hr -= 12;
-    ampm = "pm";
-  }
-  var date = dateTime.getDate();
-  if (date > 3 && date < 21) date = date + "th";
-  switch (date % 10) {
-    case 1:
-      date = date + "st";
-      break;
-    case 2:
-      date = date + "nd";
-      break;
-    case 3:
-      date = date + "rd";
-      break;
-    default:
-      break;
-  }
-  var month = months[dateTime.getMonth()];
-  var year = dateTime.getFullYear();
-  return `${day}, ${month} ${date}  ${hr}:${min} ${ampm}`;
 };
 
 const getTixQuantity = metadata => {
@@ -467,7 +409,7 @@ class Order extends Component {
     const menu = (
       <Menu>
         <Menu.Item key={0}>
-          <Link>Edit Info</Link>
+          <a>Edit Info</a>
         </Menu.Item>
 
         <Menu.Item key={1}>
@@ -476,7 +418,7 @@ class Order extends Component {
           </Popconfirm>
         </Menu.Item>
         <Menu.Item key={1}>
-          <Link>Transfer</Link>
+          <a>Transfer</a>
         </Menu.Item>
       </Menu>
     );
@@ -496,7 +438,8 @@ class Order extends Component {
             <Paragraph>{`Purchased by ${customer.metadata.firstName} ${
               customer.metadata.lastName
             } (${customer.metadata.emailAddress}) on ${getTime(
-              date
+              date,
+              "full"
             )} `}</Paragraph>
             <Descriptions>
               <Descriptions.Item label="First Name">{`${customer.metadata.firstName}`}</Descriptions.Item>
@@ -505,7 +448,10 @@ class Order extends Component {
               <Descriptions.Item label="Status">{`${customer.metadata.status}`}</Descriptions.Item>
               <Descriptions.Item label="Email Status">{`${
                 customer.guestInfo[0].dispatched_at
-                  ? `Sent @ ${getTime(customer.guestInfo[0].dispatched_at)}`
+                  ? `Sent @ ${getTime(
+                      customer.guestInfo[0].dispatched_at,
+                      "full"
+                    )}`
                   : "Not Sent Yet"
               }`}</Descriptions.Item>
 

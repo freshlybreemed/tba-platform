@@ -20,6 +20,7 @@ import {
 } from "antd";
 import { connect } from "react-redux";
 import { createForm, createFormField, formShape } from "rc-form";
+import { AUTH_CONFIG } from "../lib/auth0-variables";
 
 import Upload from "./Upload";
 import TicketCreation from "./TicketCreation";
@@ -28,29 +29,10 @@ import moment from "moment";
 import PropTypes from "prop-types";
 import axios from "axios";
 
+const host = AUTH_CONFIG.host;
+
 const FormItem = Form.Item;
-const AutoCompleteOption = AutoComplete.Option;
-const initialText = `<p>Include <strong>need-to-know information</strong> to make it easier for people to search for your event page and buy tickets once they're there.</p><p><br></p><p><br></p><p><br></p>`;
 
-const slugify = string => {
-  const a = "àáäâãåèéëêìíïîòóöôùúüûñçßÿœæŕśńṕẃǵǹḿǘẍźḧ·/_,:;";
-  const b = "aaaaaaeeeeiiiioooouuuuncsyoarsnpwgnmuxzh------";
-  const p = new RegExp(a.split("").join("|"), "g");
-  return string
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(p, c => b.charAt(a.indexOf(c))) // Replace special characters in a with b
-    .replace(/&/g, "-and-") // Replace & with ‘and’
-    .replace(/[^\w-]+/g, "") // Remove all non-word characters such as spaces or tabs
-    .replace(/--+/g, "-") // Replace multiple — with single -
-    .replace(/^-+/, "") // Trim — from start of text
-    .replace(/-+$/, ""); // Trim — from end of text
-};
-
-const success = () => {
-  message.success("This is a success message");
-};
 class Create extends React.Component {
   static propTypes = {
     form: formShape,
@@ -63,24 +45,8 @@ class Create extends React.Component {
       this.quill = require("react-quill");
     }
     this.state = {
-      confirmDirty: false,
-      isBefore: true,
       ready: false,
-      autoCompleteResult: [],
-      uploading: false,
       event: {
-        title: "",
-        organizerId: "",
-        description: initialText,
-        endTime: "",
-        endDate: "",
-        startTime: "",
-        eventType: "",
-        startDate: "",
-        image: {
-          image: "",
-          files: [""]
-        },
         location: {
           name: "",
           address: {
@@ -90,18 +56,7 @@ class Create extends React.Component {
             postalCode: "",
             country: ""
           }
-        },
-        organizer: {
-          name: "",
-          id: ""
-        },
-        refundable: true,
-        tags: "",
-        ticketTypes: {},
-        updatedAt: "",
-        user: "",
-        doorTime: "",
-        eventStatus: "draft"
+        }
       },
       modules: {
         toolbar: [
@@ -123,7 +78,6 @@ class Create extends React.Component {
     };
   }
   componentDidMount() {
-    console.log("props", this.props.formState);
     var set = () => this.setState({ ready: true });
     const script = document.createElement("script");
     script.src =
@@ -131,7 +85,9 @@ class Create extends React.Component {
     script.async = true;
     script.onload = set;
     document.body.appendChild(script);
-    console.log("idk", this.props);
+    if (this.props.event) {
+      this.props.dispatch({ type: "edit_event", payload: this.props.event });
+    }
   }
   saveImage = url => {
     this.props.dispatch({
@@ -214,7 +170,6 @@ class Create extends React.Component {
   handleLocationChange = address => {
     var event = { ...this.state.event };
     event.location.name = address;
-
     this.setState({ event }, () => console.log(this.state));
     var location = { ...this.props.formState.location };
     location.name = address;
@@ -241,18 +196,13 @@ class Create extends React.Component {
         data: this.props.createdEvent
       })
       .then(res => {
-        // if(res.data.length!=0){
-        message.success("Successfully created!");
+        message.success("Successfully updated!");
         console.log(res);
         this.props.dispatch({
           type: "fetch_events",
           payload: res.data
         });
         window.location = "/myevents";
-        // }
-        // else {
-        //   console.log("ERROR- event:", res.data)
-        // }
       })
       .catch(err => {
         console.log(err);
@@ -277,17 +227,6 @@ class Create extends React.Component {
       }
     });
   };
-  handleWebsiteChange = value => {
-    let autoCompleteResult;
-    if (!value) {
-      autoCompleteResult = [];
-    } else {
-      autoCompleteResult = [".com", ".org", ".net"].map(
-        domain => `${value}${domain}`
-      );
-    }
-    this.setState({ autoCompleteResult });
-  };
 
   render() {
     const ReactQuill = this.quill;
@@ -298,9 +237,7 @@ class Create extends React.Component {
       getFieldError,
       setFieldsValue
     } = this.props.form;
-    const { autoCompleteResult } = this.state;
     const { formState, createdEvent } = this.props;
-    console.log("formstate", !createdEvent.tickets);
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
@@ -323,9 +260,7 @@ class Create extends React.Component {
         }
       }
     };
-    const websiteOptions = autoCompleteResult.map(website => (
-      <AutoCompleteOption key={website}>{website}</AutoCompleteOption>
-    ));
+
     const isBefore = (rule, value, callback) => {
       if (value.isAfter(getFieldValue("createdEventForm.startTime"))) {
         console.log(true);
@@ -334,6 +269,20 @@ class Create extends React.Component {
       console.log(false);
       callback("End time must be after start time");
     };
+    const slugNameAvailable = async (rule, value, callback) => {
+      var availabe = null;
+      await axios
+        .get(`/api/event/${getFieldValue("createdEventForm.slug")}`)
+        .then(res => {
+          availabe = res.data.length === 0;
+        });
+      // console.log)
+      if (availabe) {
+        callback();
+      } else {
+        callback("failure");
+      }
+    };
 
     return (
       <Form onSubmit={this.handleSubmit}>
@@ -341,16 +290,6 @@ class Create extends React.Component {
           <Input
             {...getFieldProps("createdEventForm.title", {
               getValueFromEvent: e => {
-                this.props.dispatch({
-                  type: "save_fields",
-                  payload: {
-                    createdEventForm: {
-                      slug: {
-                        value: slugify(e.target.value)
-                      }
-                    }
-                  }
-                });
                 return e.target.value;
               },
               rules: [
@@ -640,17 +579,34 @@ class Create extends React.Component {
             }
           })(<Switch />)}
         </FormItem>
-        <FormItem {...formItemLayout} label="URL">
-          {getFieldDecorator("createdEventForm.website", {
-            rules: [{ required: true, message: "Please input website!" }]
+        <FormItem
+          {...formItemLayout}
+          label="URL"
+          validateStatus={getFieldError("createdEventForm.slug") ? "error" : ""}
+          help={
+            getFieldError("createdEventForm.slug")
+              ? "That name is unavailable. Please try another one."
+              : ""
+          }
+        >
+          {" "}
+          {getFieldDecorator("createdEventForm.slug", {
+            rules: [
+              { required: true, message: "Please input slug!" },
+              {
+                validator: slugNameAvailable
+              }
+            ]
           })(
-            <AutoComplete
-              dataSource={websiteOptions}
-              onChange={this.handleWebsiteChange}
-              placeholder="website"
-            >
-              <Input />
-            </AutoComplete>
+            // <>
+            //   <div style={{ marginBottom: 16 }}>
+            <Input
+              style={{ marginBottom: 16 }}
+              addonBefore={`${host.split("/")[2]}/e/`}
+              addonAfter=".com"
+            />
+            //   </div>
+            // </>
           )}
         </FormItem>
         <FormItem {...formItemLayout} label="Upload Event Image">
@@ -694,7 +650,8 @@ const mapStateToProps = state => {
       refundable: state.createdEventForm.refundable,
       organizer: state.createdEventForm.organizer,
       description: state.createdEventForm.description,
-      eventStatus: state.createdEventForm.eventStatus
+      eventStatus: state.createdEventForm.eventStatus,
+      slug: state.createdEventForm.slug
     }
   };
 };
@@ -720,7 +677,8 @@ export default connect(mapStateToProps)(
           refundable: createFormField(props.formState.refundable),
           endTime: createFormField(props.formState.endTime),
           organizer: createFormField(props.formState.organizer),
-          description: createFormField(props.formState.description)
+          description: createFormField(props.formState.description),
+          slug: createFormField(props.formState.slug)
         }
       };
     },

@@ -158,9 +158,9 @@ const MainHeader = () => {
             <Menu.Item>Notifications</Menu.Item>
             <Menu.Divider />
             <Menu.Item>
-              <Link href="https://one-readme.fusepx.com">
-                <a>Help?</a>
-              </Link>
+              {/* <Link href="https://one-readme.fusepx.com"> */}
+              <a>Help?</a>
+              {/* </Link> */}
             </Menu.Item>
             {isLoggedIn() ? (
               <Menu.Item onClick={() => handleLogout()}>Logout</Menu.Item>

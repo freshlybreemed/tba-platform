@@ -3,7 +3,7 @@ import Link from "next/link";
 import { isMobile } from "react-device-detect";
 import { connect } from "react-redux";
 import axios from "axios";
-import { formatPrice } from "../lib/helpers";
+import { formatPrice, getTime } from "../lib/helpers";
 
 import {
   Avatar,
@@ -26,69 +26,12 @@ import {
 } from "antd";
 const { Text } = Typography;
 
-const getTime = datetime => {
-  var months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  var days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  var dateTime = new Date(datetime);
-  var day = days[dateTime.getDay()];
-  var hr = dateTime.getHours();
-  var min = dateTime.getMinutes();
-  if (min < 10) {
-    min = "0" + min;
-  }
-  var ampm = "am";
-  if (hr > 12) {
-    hr -= 12;
-    ampm = "pm";
-  }
-  var date = dateTime.getDate();
-  if (date > 3 && date < 21) date = date + "th";
-  switch (date % 10) {
-    case 1:
-      date = date + "st";
-      break;
-    case 2:
-      date = date + "nd";
-      break;
-    case 3:
-      date = date + "rd";
-      break;
-    default:
-      break;
-  }
-  var month = months[dateTime.getMonth()];
-  var year = dateTime.getFullYear();
-  return day + ", " + month + " " + date;
-};
-
 const customizeRenderEmpty = type => (
   <>
     <Empty
       image={Empty.PRESENTED_IMAGE_SIMPLE}
       description={`No ${type} Yet`}
     />
-    {type === "Payouts" ? <Button type="primary">Setup Payouts</Button> : ""}
   </>
 );
 
@@ -101,15 +44,16 @@ const getPayouts = events => {
   const payoutEvents = events.filter(event => {
     return event.payouts;
   });
-
   const payouts = [];
   payoutEvents.forEach(event => {
-    payouts.push(
-      Object.assign({}, ...event.payouts, {
-        title: event.title,
-        _id: event._id
-      })
-    );
+    event.payouts.forEach(payout => {
+      payouts.push(
+        Object.assign({}, payout, {
+          title: event.title,
+          _id: event._id
+        })
+      );
+    });
   });
   console.log(events);
   return payouts;
@@ -165,7 +109,6 @@ class Payouts extends React.Component {
   constructor(props) {
     super(props);
   }
-
   render() {
     const { events, loading, dispatch } = this.props;
     console.log(getPayouts(events));
@@ -196,7 +139,7 @@ class Payouts extends React.Component {
         render: total => {
           var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
           date.setUTCSeconds(total);
-          return `${getTime(date)}`;
+          return `${getTime(date, "date")}`;
         }
       },
       {
@@ -206,7 +149,7 @@ class Payouts extends React.Component {
         render: total => {
           var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
           date.setUTCSeconds(total);
-          return `${getTime(date)}`;
+          return `${getTime(date, "date")}`;
         }
       },
       {
@@ -239,12 +182,6 @@ class Payouts extends React.Component {
       // }
     ];
     const payoutsMobileColumns = [
-      // {
-      //   title: '#',
-      //   dataIndex: 'key',
-      //   key: 'key',
-      //   render: text => <a href="javascript:;">{text}</a>
-      // },
       {
         title: "Name",
         dataIndex: "name",
@@ -287,7 +224,14 @@ class Payouts extends React.Component {
 
     return (
       <>
-        <Card title="Payouts">
+        <Card
+          title="Payouts"
+          extra={
+            <Link href="/payouts/settings">
+              <Button type="primary">Payout Settings</Button>
+            </Link>
+          }
+        >
           <ConfigProvider renderEmpty={() => customizeRenderEmpty("Payouts")}>
             <Table
               size="small"
